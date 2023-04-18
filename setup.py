@@ -1,0 +1,18 @@
+import setuptools
+
+with open("README.md", "r", encoding = "utf-8") as fh:
+    long_description = fh.read()
+
+setuptools.setup(name='pyphp',
+        version='1.0.1',
+        license='GNU',
+        url='https://github.com/nirmalparmarphd/PyPulseHeatPipe',
+        description='The data analysis Python package for the Pulsating Heat Pipe experimental data', 
+        long_description=long_description,
+        long_description_content_type='text/markdown',
+        author='Nirmal Parmar',
+        author_email='nirmalparmarphd@gmail.com',
+        packages=setuptools.find_packages(),
+        include_package_data=True,
+        install_requires=['scikit-learn','numpy','keras', 'gitpython', 'pandas','h5py', 'scipy', 'matplotlib', 'seaborn'],
+        zip_safe=False)
