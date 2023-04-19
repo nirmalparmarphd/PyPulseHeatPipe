@@ -4,11 +4,11 @@
 
 ### pkg installation
 ```
-pip install pyphp
+pip install PyPulseHeatPipe
 ```
 ## Useage: 
 ### imorting the module
-    from pyphp import PulsHeatPipe
+    from PyPulseHeatPipe import PulsHeatPipe
 ### creating the reference variable 
     analysis = PulseHaatPipe("datapath")
 ### for a class help 
@@ -32,8 +32,8 @@ pip install pyphp
 Example:
 ```
 # importing module
-from pyphp import PulseHeatPipe
-from pyphp import DataVisualisation
+from PyPulseHeatPipe import PulseHeatPipe
+from PyPulseHeatPipe import DataVisualisation
 
 analysis = PulseHeatPipe("data/al2o3_diwater_exp/60_FR/")
 visual = DataVisualisation('Al2O3_DI_60FR')
