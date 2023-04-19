@@ -8,7 +8,7 @@ pip install PyPulseHeatPipe
 ```
 ## Useage: 
 ### imorting the module
-    from PyPulseHeatPipe import PulsHeatPipe
+    from PyPulseHeatPipe import PulseHeatPipe
 ### creating the reference variable 
     analysis = PulseHaatPipe("datapath")
 ### for a class help 
