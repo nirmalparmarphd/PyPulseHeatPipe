@@ -1,6 +1,6 @@
 # PulseHeatPipe
 
-[PyPHP]() is a Python Library for data analysis and for data plotting/visualisation specifically for PHP experimental data.
+[PyPulseHeatPipe]() is a Python Library for data analysis and for data plotting/visualisation specifically for PHP experimental data.
 
 ### pkg installation
 ```

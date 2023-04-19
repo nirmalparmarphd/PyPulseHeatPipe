@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r", encoding = "utf-8") as fh:
     long_description = fh.read()
 
-setuptools.setup(name='pyphp',
+setuptools.setup(name='PyPulseHeatPipe',
         version='1.0.1',
         license='GNU',
         url='https://github.com/nirmalparmarphd/PyPulseHeatPipe',
