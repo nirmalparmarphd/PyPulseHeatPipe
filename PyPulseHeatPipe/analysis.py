@@ -62,7 +62,7 @@ class PulseHeatPipe:
         return msg
     
     # data ETL    
-    def data_etl(self, name='php_*', ext='.xlsx'):
+    def data_etl(self, name:str, ext='.xlsx'):
         """
         data_etl loads experimental data from all experimental data files (xlsx).
         Filters data and keeps only important columns.
@@ -89,9 +89,9 @@ class PulseHeatPipe:
         df_conv_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'phase']
         df_conv.columns = df_conv_columns
         # saving data to csv
-        df_out = df.to_csv(self.datapath + "combined_data.csv")
-        df_conv_out = df_conv.to_csv(self.datapath + "combined_converted_data.csv")
-        print(f"Compiled and converted data is saved at: {self.datapath}'combined_converted_data.csv'")
+        df_out = df.to_csv(self.datapath + self.sample + "_combined_data.csv")
+        df_conv_out = df_conv.to_csv(self.datapath + self.sample + "_combined_converted_data.csv")
+        print(f"Compiled and converted data is saved at: {self.datapath}'{self.sample}_combined_converted_data.csv'")
         return df, df_conv
     
     # to calculate gibbs free energy at given (T[K],P[bar])
