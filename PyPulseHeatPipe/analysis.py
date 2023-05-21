@@ -11,12 +11,14 @@ sns.set()
 ## Data Analysis
 class PulseHeatPipe:
     """
-    ## PulseHeatPipe - Manually defined functions for Advanced Data Analysis and Machine Learning.
+    ## PulseHeatPipe is a Python library to perform thermodynamic data analysis on experimental data of pulsating heat pipe. This library is developed to estimate optimal working condition based on the change in Gibbs free energy in the pusating heat pipe.
+
+    Please find more detail at https://github.com/nirmalparmarphd/PyPulseHeatPipe 
 
     ## Useage: 
     ### imorting the module
-    from analysis import PulsHeatPipe
-    ### creating the reference variable 
+    from PyPulseHeatPipe import PulsHeatPipe, DataVisualisation
+    ### setting working directory
     analysis = PulseHaatPipe("datapath")
     ### for a class help 
     help(analysis)
@@ -43,10 +45,33 @@ class PulseHeatPipe:
         self.dG_standard = 30.9 # dG of water
         self.P_standard = 1 # atomospher pressure
         self.datapath = datapath
-        print(f"Data loaded from directory: {self.datapath}")
+        print(f"Datapath loaded for working directory: {self.datapath}")
 
+    # sample xlsx blank file
+    def blank_file(self, blank='blank.xlsx'):
+        """
+        blank_file is a method to generate a blank sample (.xlsx) file to prepare data file that can futher used in thermodynamic analysis. 
+        
+        't(min)'= timestemp,
+        'Te[C]'= Eveporator Temperature,
+        'Tc[C]'= Condensor Temperature,
+        'P[mmHg]'= Pressure of PHP,
+        'Q[W]'= Power Supply,
+        'alpha'= Horizontal Angle of PHP,
+        'beta'= Vertical Angle of PHP, 
+        'phase'= Visible phase split (y/n)
+
+        useage: analysis = PulseHeatPipe("path")
+                analysis.blank_file()
+        """
+        self.blank = blank
+        df_blank = pd.DataFrame({'t(min)':[0] ,'Te[C]':[0], 'Tc[C]':[0],'P[mmHg]':[0], 'Q[W]':[0], 'alpha':[0], 'beta':[0], 'phase':[0]})
+        # creating blank file
+        df_blank_out = df_blank.to_excel(self.datapath, self.blank)
+        msg = (f"{self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the")
+        return
     # data ETL    
-    def data_etl(self):
+    def data_etl(self, name='php_*', ext='.xlsx'):
         """
         data_etl loads experimental data from all experimental data files (xlsx).
         Filters data and keeps only important columns.
@@ -56,19 +81,21 @@ class PulseHeatPipe:
         useage: analysis = PulseHeatPipe("path")
                 df, df_conv = analysis.data_etl()
         """
-        data_filenames_list = glob.glob((self.datapath + 'php_*.xlsx'))
+        self.name = name
+        self.ext = ext
+        data_filenames_list = glob.glob((self.datapath + self.name + self.ext))
         df_frames = []
         for i in range(0, len(data_filenames_list)) :
             # loading data in loop
             df_raw = pd.read_excel((data_filenames_list[i]))
-            selected_columns = ['Time (Min)', 'Tc - AVG (oC)', 'Te - AVG (oC)', 'Pressure (mm of Hg)', 'Te - Tc (oC)', 'Q (W)','Resistance (oC/W)']
+            selected_columns = ['t(min)' ,'Te[C]', 'Tc[C]','P[mmHg]', 'Q[W]', 'alpha', 'beta', 'phase']
             df_selected_columns = df_raw[selected_columns]
             df_frames.append(df_selected_columns)
             df = pd.concat(df_frames, axis=0, ignore_index=True).dropna()
-        # converting data to MKS
-        df_conv_fram = [df['Time (Min)'], df['Te - AVG (oC)']+self.T_k, df['Tc - AVG (oC)']+self.T_k, df['Te - Tc (oC)'] , df['Pressure (mm of Hg)']/self.P_const, df['Resistance (oC/W)']]
+        # converting data to MKS and 
+        df_conv_fram = [df['t(min)'], df['Te[C]']+self.T_k, df['Tc[C]']+self.T_k, df['Te[C]']-df['Tc[C]'] , df['P(mmHg)']/self.P_const, df['Q[W]'], (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , df['alpha'], df['beta'], df['phase']]
         df_conv = pd.concat(df_conv_fram, axis=1, ignore_index=True).dropna()
-        df_conv_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]']
+        df_conv_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'phase']
         df_conv.columns = df_conv_columns
         # saving data to csv
         df_out = df.to_csv(self.datapath + "combined_data.csv")
