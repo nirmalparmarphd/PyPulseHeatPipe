@@ -26,25 +26,15 @@ class PulseHeatPipe:
     help(analysis.data_etl)
     ### using a function from the class
     df, df_conv = analysis.data_etl
-    
-    ## list of avilable functions
-    1. data_etl
-    2. gibbs_fe
-    3. data_chop
-    4. data_stat
-    5. data_property_avg
-    6. best_TP
-    7. plot_all_data
-    8. plot_Te_Tc
-    9. plot_eu
     """
-    def __init__(self, datapath:str):
+    def __init__(self, datapath:str, sample:str):
         self.T_k = 273.15 # To convert in kelvin
         self.P_const = 750.062 # To convert in bar
         self.R_const = 8.314 # Real Gas constant
         self.dG_standard = 30.9 # dG of water
         self.P_standard = 1 # atomospher pressure
         self.datapath = datapath
+        self.sample = sample
         print(f"Datapath loaded for working directory: {self.datapath}")
 
     # sample xlsx blank file
@@ -70,6 +60,7 @@ class PulseHeatPipe:
         df_blank_out = df_blank.to_excel(self.datapath, self.blank)
         msg = (f"{self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the")
         return
+    
     # data ETL    
     def data_etl(self, name='php_*', ext='.xlsx'):
         """
@@ -120,7 +111,7 @@ class PulseHeatPipe:
         dG_vacuume_Te = self.R_const * Te * np.log(P_vacuum/self.P_standard)
         dG_vacuume_Tc = self.R_const * Tc * np.log(P_vacuum/self.P_standard)
         dG = dG_vacuume_Te - dG_vacuume_Tc
-        selected_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
+        selected_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'phase', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
         data = pd.concat([data, dG_vacuume_Te, dG_vacuume_Tc, dG], axis=1, ignore_index=True)
         data.columns = selected_columns
         data_out = data.to_csv(self.datapath + "gfe_combined.csv")
