@@ -58,8 +58,8 @@ class PulseHeatPipe:
         df_blank = pd.DataFrame({'t(min)':[0] ,'Te[C]':[0], 'Tc[C]':[0],'P[mmHg]':[0], 'Q[W]':[0], 'alpha':[0], 'beta':[0], 'phase':[0]})
         # creating blank file
         df_blank_out = df_blank.to_excel(self.datapath, self.blank)
-        msg = (f"{self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the")
-        return
+        msg = (f"{self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the");
+        return msg
     
     # data ETL    
     def data_etl(self, name='php_*', ext='.xlsx'):
@@ -186,6 +186,7 @@ class PulseHeatPipe:
         """
         df_opt = data[data['dG[KJ/mol]'] == data['dG[KJ/mol]'].min()]
         df_opt_idx = df_opt.index
+        Tc_opt = data['Tc[K]'].loc[df_opt_idx]
         Te_opt = data['Te[K]'].loc[df_opt_idx]
         dT_opt = data['dT[K]'].loc[df_opt_idx]
         P_opt = data['P[bar]'].loc[df_opt_idx]
@@ -193,6 +194,7 @@ class PulseHeatPipe:
         GFE_opt = data['GFE[KJ/mol]'].loc[df_opt_idx]
         TR_opt = data['TR[K/W]'].loc[df_opt_idx]
         msg = (f'Optimal G(T,P) condition at lowest (optimal) dG[{round(dG_opt.iloc[0],4)}]\n'
+               f'Tc optimal:        {round(Tc_opt.iloc[0],4)}[K] \n'
                f'Te optimal:        {round(Te_opt.iloc[0],4)}[K] \n'
                f'P  optimal:        {round(P_opt.iloc[0],4)}[bar] \n'
                f'dT optimal:        {round(dT_opt.iloc[0],4)}[K] \n'
