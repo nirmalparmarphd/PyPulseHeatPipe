@@ -19,7 +19,7 @@ class PulseHeatPipe:
     ### imorting the module
     from PyPulseHeatPipe import PulsHeatPipe, DataVisualisation
     ### setting working directory
-    analysis = PulseHaatPipe("datapath")
+    analysis = PulseHaatPipe("datapath", "sample)
     ### for a class help 
     help(analysis)
     ### for a function help
@@ -35,7 +35,8 @@ class PulseHeatPipe:
         self.P_standard = 1 # atomospher pressure
         self.datapath = datapath
         self.sample = sample
-        print(f"Datapath loaded for working directory: {self.datapath}")
+        print(f"Datapath loaded for working directory: {self.datapath}\n")
+        print(f"Sample name saved as: {self.sample}")
 
     # sample xlsx blank file
     def blank_file(self, blank='blank.xlsx'):
@@ -55,43 +56,44 @@ class PulseHeatPipe:
                 analysis.blank_file()
         """
         self.blank = blank
-        df_blank = pd.DataFrame({'t(min)':[0] ,'Te[C]':[0], 'Tc[C]':[0],'P[mmHg]':[0], 'Q[W]':[0], 'alpha':[0], 'beta':[0], 'phase':[0]})
+        df_blank = pd.DataFrame({'t(min)':[1] ,'Te[C]':[1], 'Tc[C]':[1],'P[mmHg]':[1], 'Q[W]':[1], 'alpha':[1], 'beta':[1], 'phase':[1]})
         # creating blank file
-        df_blank_out = df_blank.to_excel(self.datapath, self.blank)
-        msg = (f"{self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the");
+        df_blank_out = df_blank.to_excel(self.datapath + self.blank)
+        msg = (f"### {self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the column's head. ###");
         return msg
     
     # data ETL    
-    def data_etl(self, name:str, ext='.xlsx'):
+    def data_etl(self, name='*', ext='.xlsx'):
         """
         data_etl loads experimental data from all experimental data files (xlsx).
         Filters data and keeps only important columns.
         Combine selected data and save to csv file.
         Conver units to MKS [K, bar] system and save to csv file. 
 
-        useage: analysis = PulseHeatPipe("path")
+        useage: analysis = PulseHeatPipe("path", "sample")
                 df, df_conv = analysis.data_etl()
         """
         self.name = name
         self.ext = ext
         data_filenames_list = glob.glob((self.datapath + self.name + self.ext))
         df_frames = []
+        print('list of files considered for ETL: \n',data_filenames_list)
         for i in range(0, len(data_filenames_list)) :
             # loading data in loop
-            df_raw = pd.read_excel((data_filenames_list[i]))
+            df_raw = pd.read_excel(data_filenames_list[i])
             selected_columns = ['t(min)' ,'Te[C]', 'Tc[C]','P[mmHg]', 'Q[W]', 'alpha', 'beta', 'phase']
             df_selected_columns = df_raw[selected_columns]
             df_frames.append(df_selected_columns)
-            df = pd.concat(df_frames, axis=0, ignore_index=True).dropna()
-        # converting data to MKS and 
-        df_conv_fram = [df['t(min)'], df['Te[C]']+self.T_k, df['Tc[C]']+self.T_k, df['Te[C]']-df['Tc[C]'] , df['P(mmHg)']/self.P_const, df['Q[W]'], (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , df['alpha'], df['beta'], df['phase']]
+        df = pd.concat(df_frames, axis=0, ignore_index=True).dropna()
+      
+        df_conv_fram = [df['t(min)'], df['Te[C]']+self.T_k, df['Tc[C]']+self.T_k, df['Te[C]']-df['Tc[C]'] , df['P[mmHg]']/self.P_const, df['Q[W]'], (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , df['alpha'], df['beta'], df['phase']]
         df_conv = pd.concat(df_conv_fram, axis=1, ignore_index=True).dropna()
         df_conv_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'phase']
         df_conv.columns = df_conv_columns
-        # saving data to csv
+        # saving
         df_out = df.to_csv(self.datapath + self.sample + "_combined_data.csv")
         df_conv_out = df_conv.to_csv(self.datapath + self.sample + "_combined_converted_data.csv")
-        print(f"Compiled and converted data is saved at: {self.datapath}'{self.sample}_combined_converted_data.csv'")
+        print(f"### Compiled and converted data is saved at: {self.datapath}'{self.sample}_combined_converted_data.csv' ###")
         return df, df_conv
     
     # to calculate gibbs free energy at given (T[K],P[bar])
@@ -136,16 +138,16 @@ class PulseHeatPipe:
         return data_T
     
         # data mixing and re-arranging
-    def data_stat(self, data:pd.DataFrame):
+    def data_stat(self, data:pd.DataFrame, property = 'Te[K]'):
         """
         data_stat sorts and arrange value by a group from the experimental data loaded with data_etl function, calculates mean and standard deviation of the grouped data.
         Calculated result will be stored at the location of data files.
 
         df_mean, df_std = analysis.data_stat(data)
         """
-        df_mean = data.sort_values(by=['Te[K]']).groupby(['Te[K]'], as_index=False).mean()
+        df_mean = data.sort_values(by=property).groupby(property, as_index=False).mean()
         df_mean_out = df_mean.to_csv(self.datapath + 'combined_mean.csv')
-        df_std = data.sort_values(by=['Te[K]']).groupby(['Te[K]'], as_index=False).std().dropna()
+        df_std = data.sort_values(by=property).groupby(property, as_index=False).std().dropna()
         df_std_out = df_std.to_csv(self.datapath + 'combined_std.csv')
         print(f"Calculated mean and standard deviation values saved at {self.datapath}'combined_mean.csv' and 'combined_std.csv'")
         return df_mean, df_std
@@ -162,13 +164,13 @@ class PulseHeatPipe:
         P_avg = df_mean['P[bar]'].mean()
         dT_avg = df_mean['dT[K]'].mean()
         TR_avg = df_mean['TR[K/W]'].mean()
-        GFE_avg = df_mean['GFE[KJ/mol]'].mean()
+        GFE_avg = df_mean['GFE_Tc[KJ/mol]'].mean()
         # std values
         Tc_std = df_std['Tc[K]'].mean()
         P_std = df_std['P[bar]'].mean()
         dT_std = df_std['dT[K]'].mean()
         TR_std = df_std['TR[K/W]'].mean()
-        GFE_std = df_std['GFE[KJ/mol]'].mean()
+        GFE_std = df_std['GFE_Tc[KJ/mol]'].mean()
         # calculated results
         msg = (f"Tc  average:     {round(Tc_avg,4)} +- {round(Tc_std,4)} [K]\n"
         f"P   average:     {round(P_avg,4)} +- {round(P_std,4)} [bar]\n"
@@ -191,7 +193,7 @@ class PulseHeatPipe:
         dT_opt = data['dT[K]'].loc[df_opt_idx]
         P_opt = data['P[bar]'].loc[df_opt_idx]
         dG_opt = data['dG[KJ/mol]'].loc[df_opt_idx]
-        GFE_opt = data['GFE[KJ/mol]'].loc[df_opt_idx]
+        GFE_opt = data['GFE_Tc[KJ/mol]'].loc[df_opt_idx]
         TR_opt = data['TR[K/W]'].loc[df_opt_idx]
         msg = (f'Optimal G(T,P) condition at lowest (optimal) dG[{round(dG_opt.iloc[0],4)}]\n'
                f'Tc optimal:        {round(Tc_opt.iloc[0],4)}[K] \n'
@@ -214,10 +216,9 @@ class DataVisualisation(PulseHeatPipe):
         ### data visualisation; eg. plotting all data
         visual.plot_all_data()
     """
-    def __init__(self, sample: str):
-        super().__init__(sample)
-        self.sample = sample
-
+    def __init__(self, datapath: str, sample: str):
+        super().__init__(datapath, sample)
+        
     def plot_all_data(self, data:pd.DataFrame):
         """ Data Visualisation
             
@@ -247,13 +248,13 @@ class DataVisualisation(PulseHeatPipe):
         """ Data Visualisation
             
             useage: visual.plot_eu(df_mean, df_std, property='Tc[K]', point='.k', eu='r')
-                    here, choose value from property list: ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
+                    here, choose value from property list: ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
         """
         self.property = property
         self.xproperty = 'Te[K]'
         self.point = point
         self.eu = eu
-        properties = ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
+        properties = ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
         if self.property in properties:    
             plt.figure(figsize=(10,5));
             plt.plot(df_mean[self.xproperty], df_mean[self.property], self.point, label=self.property)

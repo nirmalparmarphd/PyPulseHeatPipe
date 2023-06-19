@@ -10,13 +10,13 @@ pip install PyPulseHeatPipe
 ### imorting the module
     from PyPulseHeatPipe import PulseHeatPipe
 ### creating the reference variable 
-    analysis = PulseHaatPipe("datapath")
+    analysis = PulseHaatPipe("datapath", "sample_name")
 ### for a class help 
     help(analysis)
 ### for a function help
     help(analysis.data_etl)
 ### using a function from the class
-    df, df_conv = analysis.data_etl
+    df, df_conv = analysis.data_etl()
 
 ## list of avilable functions
 1. data_etl
@@ -35,23 +35,34 @@ Example:
 from PyPulseHeatPipe import PulseHeatPipe
 from PyPulseHeatPipe import DataVisualisation
 
-analysis = PulseHeatPipe("data/al2o3_diwater_exp/60_FR/")
-visual = DataVisualisation('Al2O3_DI_60FR')
+analysis = PulseHeatPipe("datapaht", "sample_name")
+visual = DataVisualisation("datapaht", "sample_name")
 
 # calling help
 help(analysis.data_etl)
 help(visual.plot_all_data)
 
 # using methods eg;
+# for ETL
 df, df_conv = analysis.data_etl()
+
+# for visulisation of all thermal properties
 visual.plot_all_data(df_gfe)
 
 ```
 **NOTE**: The experimental data file must prepared in '.xlsx' formate. The data must contain atleast following columns with mentioned titles:
 
-**Data.xlsx format**
+>**samle_data.xlsx format**
 
-| 'Time (Min)' | 'Tc - AVG (oC) | 'Te - AVG (oC)' | 'Pressure (mm of Hg)' | 'Te - Tc (oC)' | 'Q (W)' |'Resistance (oC/W)' |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | 30 | 35 | 700 | 5 | 80 | 0.06 |
-| --- | --- | --- | --- | --- | --- | --- |
+| 't(min)' | 'Tc[C] | 'Te[C]' | 'P[mmHg]' | 'Q[W]' | alpha | beta | phase |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 30 | 35 | 700 | 80 | 90 | 0 | 2 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+
+here,
+
+alpha = vertical angle of PHP
+
+beta = horizontal angle of PHP
+
+phase = phase split of the working fluid
