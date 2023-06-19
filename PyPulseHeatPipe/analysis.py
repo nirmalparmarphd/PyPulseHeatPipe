@@ -131,7 +131,7 @@ class PulseHeatPipe:
         """
         Tmina = data['Te[K]'].min()
         Tmaxa = data['Te[K]'].max()
-        assert Tmin < Tmax, f"Entered wrong values: Correct range [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa,4)} ]"
+        assert Tmin < Tmax, f"Entered wrong values: Correct range [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa,4)}]"
         print(f"Optimal range of temperature(Te) for data selection: [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa)}]")
         data_T = data[data['Te[K]'] <= Tmax]
         data_T = data_T[data_T['Te[K]'] >= Tmin]
