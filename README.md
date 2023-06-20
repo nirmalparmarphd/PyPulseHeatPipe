@@ -5,6 +5,9 @@
 ### pkg installation
 ```
 pip install PyPulseHeatPipe
+
+# for pkg upgrade
+pip install --upgrade PyPulseHeatPipe
 ```
 ## Useage: 
 ### imorting the module
@@ -17,8 +20,11 @@ pip install PyPulseHeatPipe
     help(analysis.data_etl)
 ### using a function from the class
     df, df_conv = analysis.data_etl()
+### to creat blank file
+    analysis.blank_file()
 
 ## list of avilable functions
+0. blank_file
 1. data_etl
 2. gibbs_fe
 3. data_chop
@@ -50,11 +56,11 @@ df, df_conv = analysis.data_etl()
 visual.plot_all_data(df_gfe)
 
 ```
-**NOTE**: The experimental data file must prepared in '.xlsx' formate. The data must contain atleast following columns with mentioned titles:
+**NOTE**: The experimental data file must prepared in '.xlsx' format. The data must contain atleast following columns with mentioned titles:
 
 >**samle_data.xlsx format**
 
-| 't(min)' | 'Tc[C] | 'Te[C]' | 'P[mmHg]' | 'Q[W]' | alpha | beta | phase |
+| t(min) | Tc[C] | Te[C] | P[mmHg] | Q[W] | alpha | beta | phase |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 30 | 35 | 700 | 80 | 90 | 0 | 2 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
