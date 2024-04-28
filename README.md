@@ -9,21 +9,21 @@ pip install PyPulseHeatPipe
 # for pkg upgrade
 pip install --upgrade PyPulseHeatPipe
 ```
-## Useage: 
-### imorting the module
+## Usage:  
+### importing the module
     from PyPulseHeatPipe import PulseHeatPipe
 ### creating the reference variable 
-    analysis = PulseHaatPipe("datapath", "sample_name")
+    analysis = PulseHeatPipe("datapath", "sample_name")
 ### for a class help 
     help(analysis)
 ### for a function help
     help(analysis.data_etl)
 ### using a function from the class
     df, df_conv = analysis.data_etl()
-### to creat blank file
+### to create blank file
     analysis.blank_file()
 
-## list of avilable functions
+## list of available functions
 0. blank_file
 1. data_etl
 2. gibbs_fe
@@ -56,11 +56,11 @@ df, df_conv = analysis.data_etl()
 visual.plot_all_data(df_gfe)
 
 ```
-**NOTE**: The experimental data file must prepared in '.xlsx' format. The data must contain atleast following columns with mentioned titles:
+**NOTE**: The experimental data file must prepared in '.xlsx' format. The data must contain at least following columns with mentioned titles:
 
 >**samle_data.xlsx format**
 
-| t(min) | Tc[C] | Te[C] | P[mmHg] | Q[W] | alpha | beta | phase |
+| t(min) | Tc[C] | Te[C] | P[mmHg] | Q[W] | alpha | beta | pulse |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 30 | 35 | 700 | 80 | 90 | 0 | 2 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -71,4 +71,4 @@ alpha = vertical angle of PHP
 
 beta = horizontal angle of PHP
 
-phase = phase split of the working fluid
+pulse = pulse generation in the working fluid (y=1/n=0)
