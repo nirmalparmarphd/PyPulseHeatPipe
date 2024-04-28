@@ -11,15 +11,15 @@ sns.set()
 ## Data Analysis
 class PulseHeatPipe:
     """
-    ## PulseHeatPipe is a Python library to perform thermodynamic data analysis on experimental data of pulsating heat pipe. This library is developed to estimate optimal working condition based on the change in Gibbs free energy in the pusating heat pipe.
+    ## PulseHeatPipe is a Python library to perform thermodynamic data analysis on experimental data of pulsating heat pipe. This library is developed to estimate optimal working condition based on the change in Gibbs free energy in the pulsating heat pipe.
 
     Please find more detail at https://github.com/nirmalparmarphd/PyPulseHeatPipe 
 
-    ## Useage: 
-    ### imorting the module
-    from PyPulseHeatPipe import PulsHeatPipe, DataVisualisation
+    ## Usage: 
+    ### importing the module
+    from PyPulseHeatPipe import PulsHeatPipe, DataVisualization
     ### setting working directory
-    analysis = PulseHaatPipe("datapath", "sample)
+    analysis = PulseHeatPipe("datapath", "sample)
     ### for a class help 
     help(analysis)
     ### for a function help
@@ -32,7 +32,7 @@ class PulseHeatPipe:
         self.P_const = 750.062 # To convert in bar
         self.R_const = 8.314 # Real Gas constant
         self.dG_standard = 30.9 # dG of water
-        self.P_standard = 1 # atomospher pressure
+        self.P_standard = 1 # atmosphere pressure
         self.datapath = datapath
         self.sample = sample
         print(f"Datapath loaded for working directory: {self.datapath}\n")
@@ -41,25 +41,25 @@ class PulseHeatPipe:
     # sample xlsx blank file
     def blank_file(self, blank='blank.xlsx'):
         """
-        blank_file is a method to generate a blank sample (.xlsx) file to prepare data file that can futher used in thermodynamic analysis. 
+        blank_file is a method to generate a blank sample (.xlsx) file to prepare data file that can further used in thermodynamic analysis. 
         
-        't(min)'= timestemp,
-        'Te[C]'= Eveporator Temperature,
-        'Tc[C]'= Condensor Temperature,
+        'time'= timestamp,
+        'Te[C]'= Evaporator Temperature,
+        'Tc[C]'= Condenser Temperature,
         'P[mmHg]'= Pressure of PHP,
         'Q[W]'= Power Supply,
         'alpha'= Horizontal Angle of PHP,
         'beta'= Vertical Angle of PHP, 
-        'phase'= Visible phase split (y/n)
+        'pulse'= Visible pulse generation (y=1/n=0)
 
-        useage: analysis = PulseHeatPipe("path")
+        usage: analysis = PulseHeatPipe("path")
                 analysis.blank_file()
         """
         self.blank = blank
-        df_blank = pd.DataFrame({'t(min)':[1] ,'Te[C]':[1], 'Tc[C]':[1],'P[mmHg]':[1], 'Q[W]':[1], 'alpha':[1], 'beta':[1], 'phase':[1]})
+        df_blank = pd.DataFrame({'time':[1] ,'Te[C]':[1], 'Tc[C]':[1],'P[mmHg]':[1], 'Q[W]':[1], 'alpha':[1], 'beta':[1], 'pulse':[1]})
         # creating blank file
         df_blank_out = df_blank.to_excel(self.datapath + self.blank)
-        msg = (f"### {self.blank} file is created. Please enter the experimental data in this file. Do not ulter or change of the column's head. ###");
+        msg = (f"### {self.blank} file is created. Please enter the experimental data in this file. Do not alter or change of the column's head. ###")
         return msg
     
     # data ETL    
@@ -68,9 +68,9 @@ class PulseHeatPipe:
         data_etl loads experimental data from all experimental data files (xlsx).
         Filters data and keeps only important columns.
         Combine selected data and save to csv file.
-        Conver units to MKS [K, bar] system and save to csv file. 
+        Convert units to MKS [K, bar] system and save to csv file. 
 
-        useage: analysis = PulseHeatPipe("path", "sample")
+        usage: analysis = PulseHeatPipe("path", "sample")
                 df, df_conv = analysis.data_etl()
         """
         self.name = name
@@ -81,14 +81,14 @@ class PulseHeatPipe:
         for i in range(0, len(data_filenames_list)) :
             # loading data in loop
             df_raw = pd.read_excel(data_filenames_list[i])
-            selected_columns = ['t(min)' ,'Te[C]', 'Tc[C]','P[mmHg]', 'Q[W]', 'alpha', 'beta', 'phase']
+            selected_columns = ['time' ,'Te[C]', 'Tc[C]','P[mmHg]', 'Q[W]', 'alpha', 'beta', 'pulse']
             df_selected_columns = df_raw[selected_columns]
             df_frames.append(df_selected_columns)
         df = pd.concat(df_frames, axis=0, ignore_index=True).dropna()
       
-        df_conv_fram = [df['t(min)'], df['Te[C]']+self.T_k, df['Tc[C]']+self.T_k, df['Te[C]']-df['Tc[C]'] , df['P[mmHg]']/self.P_const, df['Q[W]'], (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , df['alpha'], df['beta'], df['phase']]
+        df_conv_fram = [df['time'], df['Te[C]']+self.T_k, df['Tc[C]']+self.T_k, df['Te[C]']-df['Tc[C]'] , df['P[mmHg]']/self.P_const, df['Q[W]'], (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , df['alpha'], df['beta'], df['pulse']]
         df_conv = pd.concat(df_conv_fram, axis=1, ignore_index=True).dropna()
-        df_conv_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'phase']
+        df_conv_columns = ['time' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'pulse']
         df_conv.columns = df_conv_columns
         # saving
         df_out = df.to_csv(self.datapath + self.sample + "_combined_data.csv")
@@ -99,13 +99,13 @@ class PulseHeatPipe:
     # to calculate gibbs free energy at given (T[K],P[bar])
     def gibbs_fe(self, data:pd.DataFrame):
         """
-        gibbs_fe calculates the chagne in the gibbs free energy at a given vacuum pressure and temperature.
+        gibbs_fe calculates the change in the gibbs free energy at a given vacuum pressure and temperature.
         dG = dG' + RTln(P/P')
         here, R = 8.314 [J/molK]
         P and P' = Pressure [bar]
         T = Temperature [K]
 
-        useage: df_gfe = analysis.gibbs_fe(data)
+        usage: df_gfe = analysis.gibbs_fe(data)
         """
         Te = (data['Te[K]']) 
         Tc = (data['Tc[K]'])  
@@ -113,7 +113,7 @@ class PulseHeatPipe:
         dG_vacuume_Te = self.R_const * Te * np.log(P_vacuum/self.P_standard)
         dG_vacuume_Tc = self.R_const * Tc * np.log(P_vacuum/self.P_standard)
         dG = dG_vacuume_Te - dG_vacuume_Tc
-        selected_columns = ['t(min)' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'phase', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
+        selected_columns = ['time' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'pulse', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
         data = pd.concat([data, dG_vacuume_Te, dG_vacuume_Tc, dG], axis=1, ignore_index=True)
         data.columns = selected_columns
         data_out = data.to_csv(self.datapath + "gfe_combined.csv")
@@ -125,7 +125,7 @@ class PulseHeatPipe:
         """ 
         data_chop function is used to chop the data for the selected temperature value from the Te[K] column.
 
-        useage: data = analysis.data_chop(df, Tmin, Tmax)
+        usage: data = analysis.data_chop(df, Tmin, Tmax)
         here, Tmin/Tmax is a suitable value (int) from the data.
         default values: Tmin=300, Tmax=400
         """
@@ -157,7 +157,7 @@ class PulseHeatPipe:
         """
         data_property_avg calculates average values of measured thermal properties for the given experiment data.
 
-        useage: analysis.data_property_avg(df_mean, df_std)
+        usage: analysis.data_property_avg(df_mean, df_std)
         """
         # avg values 
         Tc_avg = df_mean['Tc[K]'].mean()
@@ -184,7 +184,7 @@ class PulseHeatPipe:
         """ 
         best_TP finds best G(T,P) with lowest dG (Change in Gibbs Free Energy for Te->Tc values at constant Pressure) from the experimental dataset.
 
-        useage: analysis.best_TP(data)
+        usage: analysis.best_TP(data)
         """
         df_opt = data[data['dG[KJ/mol]'] == data['dG[KJ/mol]'].min()]
         df_opt_idx = df_opt.index
@@ -201,14 +201,14 @@ class PulseHeatPipe:
                f'P  optimal:        {round(P_opt.iloc[0],4)}[bar] \n'
                f'dT optimal:        {round(dT_opt.iloc[0],4)}[K] \n'
                f'TR optimal:        {round(TR_opt.iloc[0],4)}[K/W] \n'
-               f'GFE optimal:       dG({round(Te_opt.iloc[0],4)}, {round(P_opt.iloc[0],4)}) = {round(GFE_opt.iloc[0],4)} [KJ/mol]\n');
+               f'GFE optimal:       dG({round(Te_opt.iloc[0],4)}, {round(P_opt.iloc[0],4)}) = {round(GFE_opt.iloc[0],4)} [KJ/mol]\n')
         return print(msg)
     
 ## Data Visualisation
 class DataVisualisation(PulseHeatPipe):
     """ ## Data Visualisation class to plot PHP data.
 
-        ## useage: 
+        ## usage: 
         ### importing module
         from analysis import DataVisualisation
         ### creating the reference variable
@@ -222,7 +222,7 @@ class DataVisualisation(PulseHeatPipe):
     def plot_all_data(self, data:pd.DataFrame):
         """ Data Visualisation
             
-            useage: visual.plot_all_data(data)
+            usage: visual.plot_all_data(data)
         """
         plt.figure(figsize=(10,5))
         sns.lineplot(data)
@@ -234,7 +234,7 @@ class DataVisualisation(PulseHeatPipe):
     def plot_Te_Tc(self, data:pd.DataFrame):
         """ Data Visualisation
             
-            useage: visual.plot_Te_Tc(data)
+            usage: visual.plot_Te_Tc(data)
         """
         plt.figure(figsize=(10,5))
         plt.plot(data['Te[K]'], label = 'Te[K]')
@@ -247,7 +247,7 @@ class DataVisualisation(PulseHeatPipe):
     def plot_eu(self, df_mean:pd.DataFrame, df_std:pd.DataFrame, property:str, point='.k', eu='r'):
         """ Data Visualisation
             
-            useage: visual.plot_eu(df_mean, df_std, property='Tc[K]', point='.k', eu='r')
+            usage: visual.plot_eu(df_mean, df_std, property='Tc[K]', point='.k', eu='r')
                     here, choose value from property list: ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
         """
         self.property = property
@@ -256,7 +256,7 @@ class DataVisualisation(PulseHeatPipe):
         self.eu = eu
         properties = ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
         if self.property in properties:    
-            plt.figure(figsize=(10,5));
+            plt.figure(figsize=(10,5))
             plt.plot(df_mean[self.xproperty], df_mean[self.property], self.point, label=self.property)
             idx = df_std.index
             df_mean_idx = df_mean.loc[idx]
