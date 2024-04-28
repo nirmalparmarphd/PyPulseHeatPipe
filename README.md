@@ -60,15 +60,19 @@ visual.plot_all_data(df_gfe)
 
 >**samle_data.xlsx format**
 
-| t(min) | Tc[C] | Te[C] | P[mmHg] | Q[W] | alpha | beta | pulse |
+| t(min) | Tc[C] | Te[C] | P[bar] | Q[W] | alpha | beta | pulse |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 30 | 35 | 700 | 80 | 90 | 0 | 2 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
 here,
 
-alpha = vertical angle of PHP
+'time'= timestamp,
+'Te[C]'= Evaporator Temperature,
+'Tc[C]'= Condenser Temperature,
+'P[bar]'= Pressure (gauge) of PHP,
+'Q[W]'= Power Supply,
+'alpha'= Horizontal Angle of PHP,
+'beta'= Vertical Angle of PHP, 
+'pulse'= Visible pulse generation (y=1/n=0)
 
-beta = horizontal angle of PHP
-
-pulse = pulse generation in the working fluid (y=1/n=0)

@@ -29,10 +29,10 @@ class PulseHeatPipe:
     """
     def __init__(self, datapath:str, sample:str):
         self.T_k = 273.15 # To convert in kelvin
-        self.P_const = 750.062 # To convert in bar
+        self.P_const = 1.013 # To convert in absolute bar
         self.R_const = 8.314 # Real Gas constant
         self.dG_standard = 30.9 # dG of water
-        self.P_standard = 1 # atmosphere pressure
+        self.P_standard = 1.013 # atmosphere pressure
         self.datapath = datapath
         self.sample = sample
         print(f"Datapath loaded for working directory: {self.datapath}\n")
@@ -46,7 +46,7 @@ class PulseHeatPipe:
         'time'= timestamp,
         'Te[C]'= Evaporator Temperature,
         'Tc[C]'= Condenser Temperature,
-        'P[mmHg]'= Pressure of PHP,
+        'P[bar]'= Pressure (gauge) of PHP,
         'Q[W]'= Power Supply,
         'alpha'= Horizontal Angle of PHP,
         'beta'= Vertical Angle of PHP, 
@@ -56,7 +56,7 @@ class PulseHeatPipe:
                 analysis.blank_file()
         """
         self.blank = blank
-        df_blank = pd.DataFrame({'time':[1] ,'Te[C]':[1], 'Tc[C]':[1],'P[mmHg]':[1], 'Q[W]':[1], 'alpha':[1], 'beta':[1], 'pulse':[1]})
+        df_blank = pd.DataFrame({'time':[1] ,'Te[C]':[1], 'Tc[C]':[1],'P[bar]':[1], 'Q[W]':[1], 'alpha':[1], 'beta':[1], 'pulse':[1]})
         # creating blank file
         df_blank_out = df_blank.to_excel(self.datapath + self.blank)
         msg = (f"### {self.blank} file is created. Please enter the experimental data in this file. Do not alter or change of the column's head. ###")
@@ -81,12 +81,21 @@ class PulseHeatPipe:
         for i in range(0, len(data_filenames_list)) :
             # loading data in loop
             df_raw = pd.read_excel(data_filenames_list[i])
-            selected_columns = ['time' ,'Te[C]', 'Tc[C]','P[mmHg]', 'Q[W]', 'alpha', 'beta', 'pulse']
+            selected_columns = ['time' ,'Te[C]', 'Tc[C]','P[bar]', 'Q[W]', 'alpha', 'beta', 'pulse']
             df_selected_columns = df_raw[selected_columns]
             df_frames.append(df_selected_columns)
         df = pd.concat(df_frames, axis=0, ignore_index=True).dropna()
       
-        df_conv_fram = [df['time'], df['Te[C]']+self.T_k, df['Tc[C]']+self.T_k, df['Te[C]']-df['Tc[C]'] , df['P[mmHg]']/self.P_const, df['Q[W]'], (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , df['alpha'], df['beta'], df['pulse']]
+        df_conv_fram = [df['time'], 
+                        df['Te[C]']+self.T_k, 
+                        df['Tc[C]']+self.T_k, 
+                        df['Te[C]']-df['Tc[C]'] , 
+                        df['P[bar]'] + self.P_const, 
+                        df['Q[W]'], 
+                        (df['Te[C]']-df['Tc[C]'])/df['Q[W]'] , 
+                        df['alpha'], 
+                        df['beta'], 
+                        df['pulse']]
         df_conv = pd.concat(df_conv_fram, axis=1, ignore_index=True).dropna()
         df_conv_columns = ['time' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'pulse']
         df_conv.columns = df_conv_columns
@@ -176,7 +185,7 @@ class PulseHeatPipe:
         f"P   average:     {round(P_avg,4)} +- {round(P_std,4)} [bar]\n"
         f"dT  average:     {round(dT_avg,4)} +- {round(dT_std,4)} [K]\n"
         f"TR  average:     {round(TR_avg,4)} +- {round(TR_std,4)} [K/W]\n"
-        f"GFE average:     {round(GFE_avg,4)} +- {round(GFE_std,4)} [KJ/mol]\n");
+        f"GFE average:     {round(GFE_avg,4)} +- {round(GFE_std,4)} [KJ/mol]\n")
         return print(msg)
     
     # find optimal G(T,P) of PHP
@@ -220,7 +229,7 @@ class DataVisualisation(PulseHeatPipe):
         super().__init__(datapath, sample)
         
     def plot_all_data(self, data:pd.DataFrame):
-        """ Data Visualisation
+        """ Data Visualisation of all data
             
             usage: visual.plot_all_data(data)
         """
@@ -232,7 +241,7 @@ class DataVisualisation(PulseHeatPipe):
         plt.legend()
 
     def plot_Te_Tc(self, data:pd.DataFrame):
-        """ Data Visualisation
+        """ Data Visualisation of Te vs Tc
             
             usage: visual.plot_Te_Tc(data)
         """
@@ -245,7 +254,7 @@ class DataVisualisation(PulseHeatPipe):
         plt.legend()
 
     def plot_eu(self, df_mean:pd.DataFrame, df_std:pd.DataFrame, property:str, point='.k', eu='r'):
-        """ Data Visualisation
+        """ Data Visualisation with expanded uncertainty
             
             usage: visual.plot_eu(df_mean, df_std, property='Tc[K]', point='.k', eu='r')
                     here, choose value from property list: ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
