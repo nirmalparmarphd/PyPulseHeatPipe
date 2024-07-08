@@ -260,7 +260,8 @@ class PulseHeatPipe:
                   data: pd.DataFrame, 
                   property = 'Te[K]',
                   to_csv: bool = False,
-                  method: str = 'mean'):
+                  method: str = 'mean',
+                  decimal: int = 2 ):
         """
         data_stat sorts and arrange value by a group from the experimental data, calculates mean and standard deviation of the grouped data.
         Calculated result will be stored at the location of data files.
@@ -270,6 +271,7 @@ class PulseHeatPipe:
             property = 'Te[K]',
             to_csv: bool = False
             method: mean = 'mean' or 'std' or 'min' or 'max' etc.
+            decimal: int = 2 # to help in grouping with a choice of precision
 
         returns
             pd.DataFrame
@@ -282,6 +284,7 @@ class PulseHeatPipe:
 
         # stat compute
         df_num = data.drop(columns=obj_cols)\
+                        .round(decimal)\
                         .sort_values(by=property)\
                         .groupby(property, as_index=False)\
                         .agg(method)\
@@ -297,12 +300,14 @@ class PulseHeatPipe:
             df_o = df_out.to_csv(self.dir_path + f'grouped_{method}.csv')
             if self.verbose:
                 print(f"Calculated property saved at {self.dir_path}'combined_{method}.csv'")
-                
+
         return df_out
     
     #7
     # prepare average values for all thermal properties
-    def data_property_avg(self, df_mean:pd.DataFrame, df_std:pd.DataFrame):
+    def data_property_avg(self, 
+                          df_mean:pd.DataFrame, 
+                          df_std:pd.DataFrame):
         """
         data_property_avg calculates average values of measured thermal properties for the given experiment data.
 
