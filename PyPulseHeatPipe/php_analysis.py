@@ -307,8 +307,8 @@ class PulseHeatPipe:
     #7
     # prepare average values for all thermal properties
     def thermal_property_avg(self, 
-                          df_mean:pd.DataFrame,
-                          decimals:int = 2, 
+                          df_mean: pd.DataFrame,
+                          decimals: int = 2, 
                           ):
         """
         thermal_property_avg calculates average values (average value of entire dataset) of measured thermal properties for the given experiment data.
@@ -320,14 +320,14 @@ class PulseHeatPipe:
             decimals: int = 2            # to help in grouping with a choice of precision
 
         returns:
-            pd.DataFrame
+            string
 
         use: 
             analysis.data_property_avg(df_mean)
         """
 
         df_mean = df_mean.round(decimals)
-        col_list = []
+
         msgs = []
         for col in df_mean.columns:
             if '[' and ']' in col:
@@ -341,98 +341,52 @@ class PulseHeatPipe:
             """
             msgs.append(msg)
         print(msgs)
+        return msgs
         
     
     #8
     # find optimal G(T,P) of PHP
-    def best_TP(self, data:pd.DataFrame):
+    def best_TP(self, 
+                data: pd.DataFrame,
+                decimals: int = 2,
+                gfe_col: str = 'dG[KJ/mol]'):
         """ 
         best_TP finds best G(T,P) with lowest dG (Change in Gibbs Free Energy for Te->Tc values at constant Pressure) from the experimental dataset.
-
-        usage: analysis.best_TP(data)
-        """
-        df_opt = data[data['dG[KJ/mol]'] == data['dG[KJ/mol]'].min()]
-        df_opt_idx = df_opt.index
-        Tc_opt = data['Tc[K]'].loc[df_opt_idx]
-        Te_opt = data['Te[K]'].loc[df_opt_idx]
-        dT_opt = data['dT[K]'].loc[df_opt_idx]
-        P_opt = data['P[bar]'].loc[df_opt_idx]
-        dG_opt = data['dG[KJ/mol]'].loc[df_opt_idx]
-        GFE_opt = data['GFE_Tc[KJ/mol]'].loc[df_opt_idx]
-        TR_opt = data['TR[K/W]'].loc[df_opt_idx]
-        msg = (f'Optimal G(T,P) condition at lowest (optimal) dG[{round(dG_opt.iloc[0],4)}]\n'
-               f'Tc optimal:        {round(Tc_opt.iloc[0],4)}[K] \n'
-               f'Te optimal:        {round(Te_opt.iloc[0],4)}[K] \n'
-               f'P  optimal:        {round(P_opt.iloc[0],4)}[bar] \n'
-               f'dT optimal:        {round(dT_opt.iloc[0],4)}[K] \n'
-               f'TR optimal:        {round(TR_opt.iloc[0],4)}[K/W] \n'
-               f'GFE optimal:       dG({round(Te_opt.iloc[0],4)}, {round(P_opt.iloc[0],4)}) = {round(GFE_opt.iloc[0],4)} [KJ/mol]\n')
-        return print(msg)
-    
-## Data Visualisation
-class DataVisualisation(PulseHeatPipe):
-    """ ## Data Visualisation class to plot PHP data.
-
-        ## usage: 
-        ### importing module
-        from analysis import DataVisualisation
-        ### creating the reference variable
-        visual = DataVisualisation('sample')
-        ### data visualisation; eg. plotting all data
-        visual.plot_all_data()
-    """
-    def __init__(self, dir_path: str, sample: str):
-        super().__init__(dir_path, sample)
         
-    def plot_all_data(self, data:pd.DataFrame):
-        """ Data Visualisation of all data
-            
-            usage: visual.plot_all_data(data)
-        """
-        plt.figure(figsize=(10,5))
-        sns.lineplot(data)
-        plt.xlabel('Data')
-        plt.ylabel('Properties')
-        plt.title(f"All Data - {self.sample}")
-        plt.legend()
+        NOTE: please write units in square brackets '[]'
 
-    def plot_Te_Tc(self, data:pd.DataFrame):
-        """ Data Visualisation of Te vs Tc
-            
-            usage: visual.plot_Te_Tc(data)
-        """
-        plt.figure(figsize=(10,5))
-        plt.plot(data['Te[K]'], label = 'Te[K]')
-        plt.plot(data['Tc[K]'], label = 'Tc[K]')
-        plt.xlabel('Te[K]')
-        plt.ylabel('Tc[K]')
-        plt.title(f"Te[K] vs Tc[K] - {self.sample}")
-        plt.legend()
+        args:
+            data: pd.DataFrame
+            decimals: int = 2               # to help in grouping with a choice of precision
+            gfe_col: str = 'GFE[KJ/mol]'    # column name that contain the change in Gibbs Free Energy values
 
-    def plot_eu(self, df_mean:pd.DataFrame, df_std:pd.DataFrame, property:str, point='.k', eu='r'):
-        """ Data Visualisation with expanded uncertainty
-            
-            usage: visual.plot_eu(df_mean, df_std, property='Tc[K]', point='.k', eu='r')
-                    here, choose value from property list: ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
+        returns:
+            string
+
+        use: 
+            analysis.best_TP(data)
         """
-        self.property = property
-        self.xproperty = 'Te[K]'
-        self.point = point
-        self.eu = eu
-        properties = ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
-        if self.property in properties:    
-            plt.figure(figsize=(10,5))
-            plt.plot(df_mean[self.xproperty], df_mean[self.property], self.point, label=self.property)
-            idx = df_std.index
-            df_mean_idx = df_mean.loc[idx]
-            plt.fill_between(df_std[self.xproperty], df_mean_idx[self.property] - 2* df_std[self.property], df_mean_idx[self.property] + 2* df_std[self.property],color=self.eu, alpha=0.2, label='Expanded Uncertainty')
-            plt.xlabel(self.xproperty)
-            plt.ylabel(self.property)
-            plt.title(f"Expanded Uncertainty - {self.sample}")
-            plt.legend()
-        else:
-            print(f"Entered invalid value [{self.property}] of thermal property!\n")
-            print(f"Select any correct value from: {properties}")
-        return
+
+        data = data.round(decimals)
+        df_opt = data[data[gfe_col] == data[gfe_col].min()]
+        df_opt_idx = df_opt.index
+
+        cols = []
+        msgs = []
+        for col in data.columns:
+            if '[' and ']' in col:
+                unit = re.search(r'\[(.*?\)]', col)
+                property_avg = data[col].loc[df_opt_idx].mean()
+                property_std = data[col].loc[df_opt_idx].std()
+
+            msg = f"""
+            \noptimal thermal property at min(dG)
+            {col.split('[')[0]} average:  {property_avg} +- {property_std} {unit}
+            """
+            msgs.append(msg)
+        print(msgs)
+        return msgs
+    
+
     
     
