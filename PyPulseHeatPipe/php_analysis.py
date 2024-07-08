@@ -6,6 +6,7 @@ import os
 import glob
 import matplotlib.pyplot as plt
 import seaborn as sns
+import re
 sns.set()
 
 ## Data Analysis
@@ -261,9 +262,9 @@ class PulseHeatPipe:
                   property = 'Te[K]',
                   to_csv: bool = False,
                   method: str = 'mean',
-                  decimal: int = 2 ):
+                  decimals: int = 2 ):
         """
-        data_stat sorts and arrange value by a group from the experimental data, calculates mean and standard deviation of the grouped data.
+        compute_data_stat sorts and arrange value by a group from the experimental data, calculates mean and standard deviation of the grouped data.
         Calculated result will be stored at the location of data files.
 
         args:
@@ -271,7 +272,7 @@ class PulseHeatPipe:
             property = 'Te[K]',
             to_csv: bool = False
             method: mean = 'mean' or 'std' or 'min' or 'max' etc.
-            decimal: int = 2 # to help in grouping with a choice of precision
+            decimals: int = 2 # to help in grouping with a choice of precision
 
         returns
             pd.DataFrame
@@ -284,7 +285,7 @@ class PulseHeatPipe:
 
         # stat compute
         df_num = data.drop(columns=obj_cols)\
-                        .round(decimal)\
+                        .round(decimals)\
                         .sort_values(by=property)\
                         .groupby(property, as_index=False)\
                         .agg(method)\
@@ -305,33 +306,42 @@ class PulseHeatPipe:
     
     #7
     # prepare average values for all thermal properties
-    def data_property_avg(self, 
-                          df_mean:pd.DataFrame, 
-                          df_std:pd.DataFrame):
+    def thermal_property_avg(self, 
+                          df_mean:pd.DataFrame,
+                          decimals:int = 2, 
+                          ):
         """
-        data_property_avg calculates average values of measured thermal properties for the given experiment data.
+        thermal_property_avg calculates average values (average value of entire dataset) of measured thermal properties for the given experiment data.
 
-        usage: analysis.data_property_avg(df_mean, df_std)
+        NOTE: please write units in square brackets '[]'
+
+        args:
+            df_mean: pd.DataFrame       # grouped (on repetitive) mean data
+            decimals: int = 2            # to help in grouping with a choice of precision
+
+        returns:
+            pd.DataFrame
+
+        use: 
+            analysis.data_property_avg(df_mean)
         """
-        # avg values 
-        Tc_avg = df_mean['Tc[K]'].mean()
-        P_avg = df_mean['P[bar]'].mean()
-        dT_avg = df_mean['dT[K]'].mean()
-        TR_avg = df_mean['TR[K/W]'].mean()
-        GFE_avg = df_mean['GFE_Tc[KJ/mol]'].mean()
-        # std values
-        Tc_std = df_std['Tc[K]'].mean()
-        P_std = df_std['P[bar]'].mean()
-        dT_std = df_std['dT[K]'].mean()
-        TR_std = df_std['TR[K/W]'].mean()
-        GFE_std = df_std['GFE_Tc[KJ/mol]'].mean()
-        # calculated results
-        msg = (f"Tc  average:     {round(Tc_avg,4)} +- {round(Tc_std,4)} [K]\n"
-        f"P   average:     {round(P_avg,4)} +- {round(P_std,4)} [bar]\n"
-        f"dT  average:     {round(dT_avg,4)} +- {round(dT_std,4)} [K]\n"
-        f"TR  average:     {round(TR_avg,4)} +- {round(TR_std,4)} [K/W]\n"
-        f"GFE average:     {round(GFE_avg,4)} +- {round(GFE_std,4)} [KJ/mol]\n")
-        return print(msg)
+
+        df_mean = df_mean.round(decimals)
+        col_list = []
+        msgs = []
+        for col in df_mean.columns:
+            if '[' and ']' in col:
+                unit = re.search(r'\[(.*?\)]', col)
+                property_avg = df_mean[col].mean()
+                property_std = df_mean[col].std()
+
+            msg = f"""
+            \nthermal property average
+            {col.split('[')[0]} average:  {property_avg} +- {property_std} {unit}
+            """
+            msgs.append(msg)
+        print(msgs)
+        
     
     #8
     # find optimal G(T,P) of PHP
