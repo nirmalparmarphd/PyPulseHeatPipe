@@ -21,7 +21,7 @@ class PulseHeatPipe:
     # from PyPulseHeatPipe import PulsHeatPipe, DataVisualization
     #
     # setting working directory
-    # analysis = PulseHeatPipe("datapath", "sample)
+    # analysis = PulseHeatPipe("dir_path", "sample")
     #
     # for a class help 
     # help(analysis)
@@ -29,29 +29,44 @@ class PulseHeatPipe:
     # for a function help
     # help(analysis.data_etl)
     """
+    
     #0
     def __init__(self, 
-                 datapath:str = '.', 
+                 dir_path:str = '.', 
                  sample:str = 'default',
                  T_K:float = 273.15,
                  P_const:float = 1.013,
                  R_const:float = 8.314,
                  dG_standard:float = 30.9,
-                 P_standard:float = 1.013):
+                 P_standard:float = 1.013,
+                 verbose:bool = True):
         
         self.T_k = T_K # To convert in kelvin
         self.P_const = P_const # To convert in absolute bar
         self.R_const = R_const # Real Gas constant
         self.dG_standard = dG_standard # dG of water
         self.P_standard = P_standard # atmosphere pressure
-        self.datapath = datapath
+        self.verbose = verbose
+        self.dir_path = dir_path
         self.sample = sample
-        print(f"Datapath loaded for working directory: {self.datapath}\n")
-        print(f"Sample name saved as: {self.sample}")
+
+        if self.verbose:
+            print(f"""\t --- set default params ---
+                    Temperature constant (Kelvin conversion):       {self.T_k}
+                    Pressure constant (bar conversion):             {self.P_const}
+                    Real gas constant:                              {self.R_const}
+                    Change in Gibbs Free Energy of water:           {self.dG_standard}
+                    Standard pressure:                              {self.P_standard}
+                    verbose:                                        {self.verbose}
+                    \n
+                  """)
+            print(f"Directory path loaded for working directory: {self.dir_path}\n")
+            print(f"Sample name saved as: {self.sample}")
 
     #1
     # sample xlsx blank file
-    def blank_filße(self, blank='blank.xlsx'):
+    def blank_file(self, 
+                    blank='blank.xlsx'):
         """
         blank_file is a method to generate a blank sample (.xlsx) file to prepare data file that can further used in thermodynamic analysis. 
         
@@ -64,17 +79,27 @@ class PulseHeatPipe:
         'beta'= Vertical Angle of PHP, 
         'pulse'= Visible pulse generation (y=1/n=0)
 
-        usage: analysis = PulseHeatPipe("path")
-                analysis.blank_file()
+        args:
+            blank = 'blank.xlsx'
+
+        returns:
+            pd.DataFrame # blank pd.DataFrame and writes blank.xlsx file
+
+        use: 
+            analysis = PulseHeatPipe("data/experiment/")
+            analysis.blank_file()
 
         NOTE: This method is specially wrote for in-house experiment. This method can be use with prescribed file format and structure
         """
         self.blank = blank
         df_blank = pd.DataFrame({'time':[1] ,'Te[C]':[1], 'Tc[C]':[1],'P[bar]':[1], 'Q[W]':[1], 'alpha':[1], 'beta':[1], 'pulse':[1]})
         # creating blank file
-        df_blank_out = df_blank.to_excel(self.datapath + self.blank)
-        msg = (f"### {self.blank} file is created. Please enter the experimental data in this file. Do not alter or change of the column's head. ###")
-        return msg
+        df_blank_out = df_blank.to_excel(self.dir_path + self.blank)
+        
+        if self.verbose:
+            msg = (f"### {self.blank} file is created. Please enter the experimental data in this file. Do not alter or change of the column's head. ###")
+            print(msg)
+        return df_blank
     
     #2
     # data ETL    
@@ -83,7 +108,7 @@ class PulseHeatPipe:
         data_etl loads experimental data from all experimental data files (xlsx).
         Filters data and keeps only important columns.
         Combine selected data and save to csv file.
-        Convert units to MKS [K, bar] system and save to csv file. 
+        Convert units to SI [K, bar] system and save to csv file. 
 
         usage: analysis = PulseHeatPipe("path", "sample")
                 df, df_conv = analysis.data_etl()
@@ -92,9 +117,12 @@ class PulseHeatPipe:
         """
         self.name = name
         self.ext = ext
-        data_filenames_list = glob.glob((self.datapath + self.name + self.ext))
+        data_filenames_list = glob.glob((self.dir_path + self.name + self.ext))
         df_frames = []
-        print('list of files considered for ETL: \n',data_filenames_list)
+
+        if self.verbose:
+            print('list of files considered for ETL: \n',data_filenames_list)
+
         for i in range(0, len(data_filenames_list)) :
             # loading data in loop
             df_raw = pd.read_excel(data_filenames_list[i])
@@ -117,9 +145,11 @@ class PulseHeatPipe:
         df_conv_columns = ['time' ,'Te[K]', 'Tc[K]', 'dT[K]', 'P[bar]', 'Q[W]', 'TR[K/W]','alpha', 'beta', 'pulse']
         df_conv.columns = df_conv_columns
         # saving
-        df_out = df.to_csv(self.datapath + self.sample + "_combined_data.csv")
-        df_conv_out = df_conv.to_csv(self.datapath + self.sample + "_combined_converted_data.csv")
-        print(f"### Compiled and converted data is saved at: {self.datapath}'{self.sample}_combined_converted_data.csv' ###")
+        df_out = df.to_csv(self.dir_path + self.sample + "_combined_data.csv")
+        df_conv_out = df_conv.to_csv(self.dir_path + self.sample + "_combined_converted_data.csv")
+
+        if self.verbose:
+            print(f"### Compiled and converted data is saved at: {self.dir_path}'{self.sample}_combined_converted_data.csv' ###")
         return df, df_conv
     
     #3
@@ -138,13 +168,14 @@ class PulseHeatPipe:
 
     #4
     # to calculate gibbs free energy at given (T[K],P[bar])
-    def compute_gibbs_fe(self, 
-                 data: pd.DataFrame,
-                 T_evaporator_col: str = 'Te[K]',
-                 T_condenser_col: str = 'Tc[K]',
-                 to_csv: bool = False):
+    def compute_gibbs_free_energy(self, 
+                                    data: pd.DataFrame,
+                                    T_evaporator_col: str = 'Te[K]',
+                                    T_condenser_col: str = 'Tc[K]',
+                                    to_csv: bool = False
+                                    ):
         """
-        gibbs_fe calculates the change in the gibbs free energy at a given vacuum pressure and temperature.
+        gibbs_free_energy (GFE) method calculates the change in the gibbs free energy at a given vacuum pressure and temperature of the PHP.
 
         default considered thermal parameters for calculation.
         dG = dG' + RTln(P/P')
@@ -166,17 +197,22 @@ class PulseHeatPipe:
         P_vacuum = (data[T_condenser_col]) # converting to bar
 
         # calculating gfe
-        dG_vacuume_Te = self.R_const * Te * np.log(P_vacuum/self.P_standard)
-        dG_vacuume_Tc = self.R_const * Tc * np.log(P_vacuum/self.P_standard)
-        dG = dG_vacuume_Te - dG_vacuume_Tc
+        dG_vacuum_Te = self.R_const * Te * np.log(P_vacuum/self.P_standard)
+        dG_vacuum_Tc = self.R_const * Tc * np.log(P_vacuum/self.P_standard)
+        dG = dG_vacuum_Te - dG_vacuum_Tc
+
+        df_dG_vacuum_Te = pd.DataFrame({'GFE_Te[KJ/mol]': dG_vacuum_Te})
+        df_dG_vacuum_Tc = pd.DataFrame({'GFE_Tc[KJ/mol]': dG_vacuum_Tc})
+        df_dG = pd.DataFrame({'dG[KJ/mol]': dG})
 
         # making df
-        data = pd.concat([data, {dG_vacuume_Te: 'GFE_Te[KJ/mol]'}, {dG_vacuume_Tc: 'GFE_Tc[KJ/mol]'}, {dG: 'dG[KJ/mol]'}], axis=1, ignore_index=True)
+        data = pd.concat([data, df_dG_vacuum_Te, df_dG_vacuum_Tc, df_dG], axis=1, ignore_index=True)
         
         # to csv
         if to_csv:
-            data_out = data.to_csv(self.datapath + "gfe_combined.csv")
-            msg = print(f"Gibbs Free Energy calculated data saved at: {self.datapath}'gfe_combined.csv")
+            data_out = data.to_csv(self.dir_path + "gfe_combined.csv")
+            if self.verbose:
+                msg = print(f"Gibbs Free Energy calculated data saved at: {self.dir_path}'gfe_combined.csv")
         return data
     
     #5
@@ -186,9 +222,11 @@ class PulseHeatPipe:
                   Tmin: int = 300, 
                   Tmax: int = 400,
                   T_evaporator_col: str = 'Te[K]',
-                  T_condenser_col: str = 'Tc[K]'):
+                  T_condenser_col: str = 'Tc[K]'
+                  ):
         """ 
         data_chop method is used to chop the data for the selected temperature value from the Te[K] column.
+        if selected temperature range is not correct then method will suggest suitable temperature range.
 
         args:
             data: pd.DataFrame
@@ -256,9 +294,10 @@ class PulseHeatPipe:
         df_out = pd.concat([df_num, df_obj], axis=1).reset_index()
 
         if to_csv:
-            df_o = df_out.to_csv(self.datapath + f'grouped_{method}.csv')
-            
-            print(f"Calculated property saved at {self.datapath}'combined_{method}.csv'")
+            df_o = df_out.to_csv(self.dir_path + f'grouped_{method}.csv')
+            if self.verbose:
+                print(f"Calculated property saved at {self.dir_path}'combined_{method}.csv'")
+                
         return df_out
     
     #7
@@ -327,8 +366,8 @@ class DataVisualisation(PulseHeatPipe):
         ### data visualisation; eg. plotting all data
         visual.plot_all_data()
     """
-    def __init__(self, datapath: str, sample: str):
-        super().__init__(datapath, sample)
+    def __init__(self, dir_path: str, sample: str):
+        super().__init__(dir_path, sample)
         
     def plot_all_data(self, data:pd.DataFrame):
         """ Data Visualisation of all data
