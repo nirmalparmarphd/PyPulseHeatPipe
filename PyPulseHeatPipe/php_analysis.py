@@ -220,10 +220,10 @@ class PulseHeatPipe:
                 col_name = col.split('[')[0].strip()
                 # pressure conversion
                 if unit in ['pa', 'kpa', 'mpa', 'atm', 'bar', 'mbar', 'torr', 'psi']:
-                    df[col_name] = df[col].apply(lambda x: pressure_to_bar(x, unit))
+                    df[col_name+'[bar]'] = df[col].apply(lambda x: pressure_to_bar(x, unit))
                 # temperature conversion
                 elif unit in ['c', 'f', 'k', 'r']:
-                    df[col_name] = df[col].apply(lambda x: temperature_to_kelvin(x, unit))
+                    df[col_name+'[K]'] = df[col].apply(lambda x: temperature_to_kelvin(x, unit))
 
         return df
                 
