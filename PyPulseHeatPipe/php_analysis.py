@@ -159,13 +159,74 @@ class PulseHeatPipe:
         """
         to convert given data to SI units
 
+        NOTE: please write units in square brackets '[]'
+
         args:
             df: pd.DataFrame
 
         returns:
             df: pd.DataFrame
         """
-        pass
+        # pressure conversion function
+        def pressure_to_bar(pressure, from_unit):
+            # Conversion factors to bar with standard abbreviations
+            conversion_factors = {
+                'pa': 1e-5,         # Pascal
+                'kpa': 1e-2,        # Kilopascal
+                'mpa': 10,          # Megapascal
+                'atm': 1.01325,     # Atmosphere
+                'bar': 1,           # Bar
+                'mbar': 1e-3,       # Millibar
+                'torr': 1.33322e-3, # Torr
+                'psi': 6.89476e-2   # Pounds per square inch
+            }
+            
+            # Normalize unit to lower case
+            from_unit = from_unit.lower()
+            
+            if from_unit not in conversion_factors:
+                raise ValueError(f"Unsupported unit: {from_unit}")
+            
+            # Convert to bar
+            bar_value = pressure * conversion_factors[from_unit]
+            
+            return bar_value
+        
+        # temperature conversion function
+        def temperature_to_kelvin(temperature, from_unit):
+            # Conversion formulas to Kelvin
+            conversion_formulas = {
+                'c': lambda x: x + 273.15,           # Celsius to Kelvin
+                'f': lambda x: (x - 32) * 5.0/9.0 + 273.15, # Fahrenheit to Kelvin
+                'k': lambda x: x,                    # Kelvin to Kelvin (no change)
+                'r': lambda x: x * 5.0/9.0           # Rankine to Kelvin
+            }
+            
+            # Normalize unit to lower case
+            from_unit = from_unit.lower()
+            
+            if from_unit not in conversion_formulas:
+                raise ValueError(f"Unsupported unit: {from_unit}")
+            
+            # Convert to Kelvin
+            kelvin_value = conversion_formulas[from_unit](temperature)
+            
+            return kelvin_value
+
+        for col in df.columns:
+            match = re.search(r'\[(.*?)\]', col)
+            if match:
+                unit = match.group(1).lower()
+                col_name = col.split('[')[0].strip()
+                # pressure conversion
+                if unit in ['pa', 'kpa', 'mpa', 'atm', 'bar', 'mbar', 'torr', 'psi']:
+                    df[col_name] = df[col].apply(lambda x: pressure_to_bar(x, unit))
+                # temperature conversion
+                elif unit in ['c', 'f', 'k', 'r']:
+                    df[col_name] = df[col].apply(lambda x: temperature_to_kelvin(x, unit))
+
+        return df
+                
 
     #4
     # to calculate gibbs free energy at given (T[K],P[bar])
