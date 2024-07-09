@@ -12,23 +12,23 @@ sns.set()
 ## Data Analysis
 class PulseHeatPipe:
     """
-    ## PulseHeatPipe is a Python library to perform thermodynamic data analysis on experimental data of pulsating heat pipe. This library is developed to estimate optimal working condition based on the change in Gibbs free energy in the pulsating heat pipe.
+    PulseHeatPipe is a Python library to perform thermodynamic data analysis on experimental data of pulsating heat pipe. This library is developed to estimate optimal working condition based on the change in Gibbs free energy in the pulsating heat pipe.
 
     Please find more detail at https://github.com/nirmalparmarphd/PyPulseHeatPipe 
 
     ## use:
-    #  
-    # importing the module
-    # from PyPulseHeatPipe import PulsHeatPipe, DataVisualization
-    #
-    # setting working directory
-    # analysis = PulseHeatPipe("dir_path", "sample")
-    #
-    # for a class help 
-    # help(analysis)
-    #
-    # for a function help
-    # help(analysis.data_etl)
+     
+    importing the module
+    from PyPulseHeatPipe import PulsHeatPipe, DataVisualization
+    
+    setting working directory
+    analysis = PulseHeatPipe("dir_path", "sample")
+    
+    for a class help 
+    help(analysis)
+    
+    for a function help
+    help(analysis.data_etl)
     """
     
     #0
@@ -53,16 +53,16 @@ class PulseHeatPipe:
 
         if self.verbose:
             print(f"""\t --- set default params ---
-                    Temperature constant (Kelvin conversion):       {self.T_k}
-                    Pressure constant (bar conversion):             {self.P_const}
-                    Real gas constant:                              {self.R_const}
-                    Change in Gibbs Free Energy of water:           {self.dG_standard}
-                    Standard pressure:                              {self.P_standard}
+                    Temperature constant (Kelvin conversion):       {self.T_k}\t[K]
+                    Pressure constant (bar conversion):             {self.P_const}\t[bar]
+                    Real gas constant:                              {self.R_const}\t[J/Kmol]
+                    Change in Gibbs Free Energy of water:           {self.dG_standard}\t[KJ/mol]
+                    Standard pressure:                              {self.P_standard}\t[bar]
                     verbose:                                        {self.verbose}
                     \n
                   """)
-            print(f"Directory path loaded for working directory: {self.dir_path}\n")
-            print(f"Sample name saved as: {self.sample}")
+            print(f"Directory path loaded for working directory: '{self.dir_path}'\n")
+            print(f"Sample name saved as: '{self.sample}'")
 
     #1
     # sample xlsx blank file
