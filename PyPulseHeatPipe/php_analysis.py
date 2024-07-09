@@ -448,6 +448,3 @@ class PulseHeatPipe:
         print(msgs)
         return msgs
     
-
-    
-    
