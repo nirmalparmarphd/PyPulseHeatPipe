@@ -377,40 +377,52 @@ class PulseHeatPipe:
     #7
     # prepare average values for all thermal properties
     def thermal_property_avg(self, 
-                          df_mean: pd.DataFrame,
-                          decimals: int = 2, 
-                          ):
+                             data: pd.DataFrame,
+                             decimals: int = 2
+                             ) -> list[str]:
         """
-        thermal_property_avg calculates average values (average value of entire dataset) of measured thermal properties for the given experiment data.
-
-        NOTE: please write units in square brackets '[]'
+        Calculates average values of measured thermal properties for the given experiment data.
 
         args:
-            df_mean: pd.DataFrame       # grouped (on repetitive) mean data
-            decimals: int = 2            # to help in grouping with a choice of precision
+            data (pd.DataFrame): DataFrame containing the experimental data.
+            decimals (int): Precision for rounding the data. Default is 2.
 
         returns:
-            string
-
-        use: 
-            analysis.data_property_avg(df_mean)
+            list[str]: List of strings containing the average and standard deviation for each thermal property.
         """
+        df_mean = data.round(decimals)
+        data.fillna(0, inplace=True)
 
-        df_mean = df_mean.round(decimals)
+        if self.verbose:
+            print('--- Thermal Properties Average ---')
 
         msgs = []
-        for col in df_mean.columns:
-            if '[' and ']' in col:
-                unit = re.search(r'\[(.*?\)]', col)
-                property_avg = df_mean[col].mean()
-                property_std = df_mean[col].std()
+        for col in df_mean.select_dtypes(exclude=['object', 'datetime']).columns:
+            # Extracting the unit from the column name if it exists
+            unit_match = re.search(r'\[(.*?)\]', col)
+            if unit_match:
+                unit = unit_match.group(0)
+                property_name = col.split('[')[0].strip()
+            else:
+                continue
+                # unit = ''
+                # property_name = col
+            try:
+                # Calculate average and standard deviation
+                property_avg = np.round(df_mean[col].mean(), 2)
+                property_std = np.round(df_mean[col].std(), 2)
 
-            msg = f"""
-            \nthermal property average
-            {col.split('[')[0]} average:  {property_avg} +- {property_std} {unit}
-            """
-            msgs.append(msg)
-        print(msgs)
+                if np.isnan(property_std):
+                    property_std = 0
+                
+                msg = f"{property_name}\t\t average:\t\t {property_avg} ± {property_std}\t\t {unit}"
+                msgs.append(msg)
+
+                if self.verbose:
+                    print(msg)
+            except Exception as e:
+                if self.verbose:
+                    print(f"Could not process column '{col}': {e}")
         return msgs
         
     
@@ -441,19 +453,28 @@ class PulseHeatPipe:
         df_opt = data[data[gfe_col] == data[gfe_col].min()]
         df_opt_idx = df_opt.index
 
-        cols = []
+        if self.verbose:
+            print(f'--- optimal thermal property at min(dG) ---')
         msgs = []
-        for col in data.columns:
+        for col in data.select_dtypes(exclude=['object', 'datetime']).columns:
             if '[' and ']' in col:
-                unit = re.search(r'\[(.*?\)]', col)
-                property_avg = data[col].loc[df_opt_idx].mean()
-                property_std = data[col].loc[df_opt_idx].std()
+                unit_match = re.search(r'\[(.*?)\]', col)
+                try:
+                    if unit_match:
+                        unit = unit_match.group(0)
+                        property_avg = data[col].loc[df_opt_idx].mean()
+                        property_std = data[col].loc[df_opt_idx].std()
+                        if np.isnan(property_std):
+                            property_std = 0
 
-            msg = f"""
-            \noptimal thermal property at min(dG)
-            {col.split('[')[0]} average:  {property_avg} +- {property_std} {unit}
-            """
-            msgs.append(msg)
-        print(msgs)
+                        msg = f"{col.split('[')[0]}\t\t average:\t\t  {property_avg} +- {property_std}\t\t {unit}"
+                        msgs.append(msg)
+                        if self.verbose:
+                            print(msg)
+                    else:
+                        continue
+                except Exception as e:
+                    if self.verbose:
+                        print(f"Could not process column '{col}': {e}")
         return msgs
     
