@@ -234,6 +234,7 @@ class PulseHeatPipe:
                                     data: pd.DataFrame,
                                     T_evaporator_col: str = 'Te[K]',
                                     T_condenser_col: str = 'Tc[K]',
+                                    P_bar: str = 'P[bar]',
                                     to_csv: bool = False
                                     ):
         """
@@ -256,7 +257,7 @@ class PulseHeatPipe:
         """
         Te = (data[T_evaporator_col]) 
         Tc = (data[T_condenser_col])  
-        P_vacuum = (data[T_condenser_col]) # converting to bar
+        P_vacuum = (data[P_bar]) # converting to bar
 
         # calculating gfe
         dG_vacuum_Te = self.R_const * Te * np.log(P_vacuum/self.P_standard)
@@ -268,11 +269,12 @@ class PulseHeatPipe:
         df_dG = pd.DataFrame({'dG[KJ/mol]': dG})
 
         # making df
-        data = pd.concat([data, df_dG_vacuum_Te, df_dG_vacuum_Tc, df_dG], axis=1, ignore_index=True)
+        data = pd.concat([data, df_dG_vacuum_Te, df_dG_vacuum_Tc, df_dG], axis=1, ignore_index=False)
+        data.fillna(0, inplace=True)
         
         # to csv
         if to_csv:
-            data_out = data.to_csv(self.dir_path + "gfe_combined.csv")
+            data_out = data.to_csv(self.dir_path + "gfe_combined.csv", index=False)
             if self.verbose:
                 msg = print(f"Gibbs Free Energy calculated data saved at: {self.dir_path}'gfe_combined.csv")
         return data
@@ -283,8 +285,7 @@ class PulseHeatPipe:
                   data: pd.DataFrame, 
                   Tmin: int = 300, 
                   Tmax: int = 400,
-                  T_evaporator_col: str = 'Te[K]',
-                  T_condenser_col: str = 'Tc[K]'
+                  T_col: str = 'Te[K]',
                   ):
         """ 
         data_chop method is used to chop the data for the selected temperature value from the Te[K] column.
@@ -306,13 +307,13 @@ class PulseHeatPipe:
         here, Tmin/Tmax is a suitable value (int) from the data.
         default values: Tmin=300, Tmax=400
         """
-        Tmina = data[T_evaporator_col].min()
-        Tmaxa = data[T_condenser_col].max()
+        Tmina = data[T_col].min()
+        Tmaxa = data[T_col].max()
 
         assert Tmin < Tmax, f"Entered wrong values: Correct range [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa,4)}]"
         
         print(f"Optimal range of temperature(Te) for data selection: [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa)}]")
-        data_T = data[(data['Te[K]'] <= Tmax) & (data['Te[K]'] >= Tmin)]
+        data_T = data[(data[T_col] <= Tmax) & (data[T_col] >= Tmin)]
 
         return data_T
     
