@@ -351,22 +351,26 @@ class PulseHeatPipe:
 
         # stat compute
         df_num = data.drop(columns=obj_cols)\
-                        .round(decimals)\
                         .sort_values(by=property)\
+                        .round(decimals)\
                         .groupby(property, as_index=False)\
                         .agg(method)\
-                        .dropna()
         
-        # obj selection per group
-        df_obj = data.groupby(by=property)[obj_cols].first()
-
-        # concat
-        df_out = pd.concat([df_num, df_obj], axis=1).reset_index()
+        print(f'shape {df_num.shape}')
+        # Select first object column value per group
+        df_obj = data.sort_values(by=property)\
+                        .round(decimals)\
+                        .groupby(by=property, as_index=False)[obj_cols]\
+                        .first()
+        
+        print(f'shape {df_obj.shape}')
+        # Concatenate numerical and object dataframes
+        df_out = pd.concat([df_num, df_obj], axis=1)
 
         if to_csv:
-            df_o = df_out.to_csv(self.dir_path + f'grouped_{method}.csv')
+            df_out.to_csv(self.dir_path + f'grouped_{method}.csv', index=False)
             if self.verbose:
-                print(f"Calculated property saved at {self.dir_path}'combined_{method}.csv'")
+                print(f"Calculated property saved at {self.dir_path}'grouped_{method}.csv'")
 
         return df_out
     
