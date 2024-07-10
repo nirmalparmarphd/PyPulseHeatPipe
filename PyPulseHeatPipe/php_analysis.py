@@ -286,6 +286,7 @@ class PulseHeatPipe:
                   Tmin: int = 300, 
                   Tmax: int = 400,
                   T_col: str = 'Te[K]',
+                  chop_suggested: bool = False
                   ):
         """ 
         data_chop method is used to chop the data for the selected temperature value from the Te[K] column.
@@ -295,9 +296,9 @@ class PulseHeatPipe:
             data: pd.DataFrame
             Tmin: int = 300,                    # choice of T min 
             Tmax: int = 400,                    # choice of T max
-            T_evaporator_col: str = 'Te[K]',    # evaporator column name
-            T_condenser_col: str = 'Tc[K]'      # condenser column name
-        
+            T_col: str = 'Te[K]                 # selected column name
+            chop_suggested: bool                # to chop DataFrame on suggested bounds
+
         returns:
             pd.DataFrame
         
@@ -314,6 +315,9 @@ class PulseHeatPipe:
         
         print(f"Optimal range of temperature(Te) for data selection: [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa)}]")
         data_T = data[(data[T_col] <= Tmax) & (data[T_col] >= Tmin)]
+
+        if chop_suggested:
+            data_T = data[(data[T_col] <= Tmaxa) & (data[T_col] >= Tmina)]
 
         return data_T
     
