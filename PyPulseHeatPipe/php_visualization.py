@@ -1,24 +1,41 @@
 from php_analysis import PulseHeatPipe
+## PHP Data Analysis and Plotting Class
+import numpy as np
+import pandas as pd
+from os import listdir
+import os
+import glob
+import matplotlib.pyplot as plt
+import seaborn as sns
+import re
+sns.set()
 
-## Data Visualisation
-class DataVisualisation(PulseHeatPipe):
-    """ ## Data Visualisation class to plot PHP data.
+## Data Visualization
+class DataVisualization(PulseHeatPipe):
+    """ Data Visualization class to plot PHP experimental and processed data.
 
-        ## usage: 
-        ### importing module
-        from analysis import DataVisualisation
-        ### creating the reference variable
-        visual = DataVisualisation('sample')
-        ### data visualisation; eg. plotting all data
+        ## use: 
+        
+        importing module
+        from analysis import DataVisualization
+        
+        creating the reference variable
+        visual = DataVisualization('dir_path', 'sample')
+        
+        data Visualization; eg. plotting all data
         visual.plot_all_data()
     """
-    def __init__(self, dir_path: str, sample: str):
-        super().__init__(dir_path, sample)
-        
+    #0
+    def __init__(self, dir_path: str, 
+                 sample: str):
+        super().__init__(dir_path, 
+                         sample)
+    #1    
     def plot_all_data(self, data:pd.DataFrame):
-        """ Data Visualisation of all data
+        """ Data Visualization of all data
             
-            usage: visual.plot_all_data(data)
+            use: 
+                visual.plot_all_data(data)
         """
         plt.figure(figsize=(10,5))
         sns.lineplot(data)
@@ -28,9 +45,10 @@ class DataVisualisation(PulseHeatPipe):
         plt.legend()
 
     def plot_Te_Tc(self, data:pd.DataFrame):
-        """ Data Visualisation of Te vs Tc
+        """ Data Visualization of Te vs Tc
             
-            usage: visual.plot_Te_Tc(data)
+            use:
+                visual.plot_Te_Tc(data)
         """
         plt.figure(figsize=(10,5))
         plt.plot(data['Te[K]'], label = 'Te[K]')
@@ -41,7 +59,7 @@ class DataVisualisation(PulseHeatPipe):
         plt.legend()
 
     def plot_eu(self, df_mean:pd.DataFrame, df_std:pd.DataFrame, property:str, point='.k', eu='r'):
-        """ Data Visualisation with expanded uncertainty
+        """ Data Visualization with expanded uncertainty
             
             usage: visual.plot_eu(df_mean, df_std, property='Tc[K]', point='.k', eu='r')
                     here, choose value from property list: ['Tc[K]', 'dT[K]', 'P[bar]', 'TR[K/W]', 'GFE_Te[KJ/mol]', 'GFE_Tc[KJ/mol]', 'dG[KJ/mol]']
