@@ -641,11 +641,11 @@ class DataVisualization(PulseHeatPipe):
                             print('DataFrame is empty!')
                 # combined
                 plt.legend()
-                plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b}')
+                plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
                 plt.show()
         
         # separate plot
-        if plot_method.lower() == 'separate':
+        elif plot_method.lower() == 'separate':
             # Assuming frs, qs, alphas, betas are defined and data is your DataFrame
             plt.figure(figsize=figsize)
             for fr in frs:
@@ -679,7 +679,7 @@ class DataVisualization(PulseHeatPipe):
                             print('DataFrame is empty!')
                         # separate
                         plt.legend()
-                        plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b}')
+                        plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
                         plt.show()
 
         else:

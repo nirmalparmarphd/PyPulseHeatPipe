@@ -116,7 +116,7 @@ PulseHeatPipe is a Python library designed to perform thermodynamic data analysi
 
     dv.get_dashboard(data=gfe_data)
 
-    # get a custom pltos
+    # get a custom plots
 
     dv.get_plots(data=df_gfe,
              x_col='Te_mean[K]',
