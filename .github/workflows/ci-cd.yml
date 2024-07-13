@@ -28,7 +28,7 @@ jobs:
       - name: Build and publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          python setup.py sdist bdist_wheel
+          python3 -m build
           twine upload --repository pypi dist/* 
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
