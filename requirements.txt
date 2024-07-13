@@ -6,3 +6,5 @@ pygwalker
 streamlit
 openpyxl
 build
+sdist
+twine
