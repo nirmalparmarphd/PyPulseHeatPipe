@@ -6,25 +6,25 @@
 
 PulseHeatPipe is a Python library designed to perform thermodynamic data analysis on experimental data from pulsating heat pipes (PHP).
 
-    This library helps estimate optimal working conditions based on the change in Gibbs free energy within the PHP system.
+This library helps estimate optimal working conditions based on the change in Gibbs free energy within the PHP system.
 
-    Key Features:
+Key Features:
 
-    - Generate a blank template file for experimental data entry.
+- Generate a blank template file for experimental data entry.
 
-    - Perform data extraction, transformation, and loading (ETL) from multiple experimental files.
+- Perform data extraction, transformation, and loading (ETL) from multiple experimental files.
 
-    - Convert units to the SI system.
+- Convert units to the SI system.
 
-    - Calculate Gibbs free energy at given temperatures and pressures.
+- Calculate Gibbs free energy at given temperatures and pressures.
 
-    - Select data within a specific temperature range.
+- Select data within a specific temperature range.
 
-    - Compute and save statistical properties (mean, standard deviation) of the data.
+- Compute and save statistical properties (mean, standard deviation) of the data.
 
-    - Calculate average values of thermal properties.
+- Calculate average values of thermal properties.
 
-    - Identify optimal thermal properties based on the minimum Gibbs free energy change.
+- Identify optimal thermal properties based on the minimum Gibbs free energy change.
 
 ### Attributes:
 
