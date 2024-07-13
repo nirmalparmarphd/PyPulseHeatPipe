@@ -634,7 +634,7 @@ class DataVisualization(PulseHeatPipe):
 
                         if not data_chop.empty:
                             # Plotting
-                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{x_col}_vs_{y_col}')
+                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}')
                             plt.xlabel(f'{x_col}')
                             plt.ylabel(f'{y_col}')
                         else:
@@ -672,7 +672,7 @@ class DataVisualization(PulseHeatPipe):
                         if not data_chop.empty:
                             # Plotting
                             plt.figure(figsize=figsize)
-                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{x_col}_vs_{y_col}')
+                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}')
                             plt.xlabel(f'{x_col}')
                             plt.ylabel(f'{y_col}')
                         else:

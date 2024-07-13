@@ -4,7 +4,7 @@ with open("README.md", "r", encoding = "utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(name='PyPulseHeatPipe',
-        version='1.1.1',
+        version='1.1.2',
         license='GNU',
         url='https://github.com/nirmalparmarphd/PyPulseHeatPipe',
         description='The data analysis Python package for the Pulsating Heat Pipe experimental data', 
@@ -14,5 +14,5 @@ setuptools.setup(name='PyPulseHeatPipe',
         author_email='nirmalparmarphd@gmail.com',
         packages=setuptools.find_packages(),
         include_package_data=True,
-        install_requires=['scikit-learn','numpy', 'gitpython', 'pandas','scipy', 'matplotlib', 'seaborn', 'openpyxl'],
+        install_requires=['scikit-learn','numpy', 'gitpython', 'pandas','scipy', 'matplotlib', 'seaborn', 'openpyxl', 'pygwalker', 'streamlit'],
         zip_safe=False)
