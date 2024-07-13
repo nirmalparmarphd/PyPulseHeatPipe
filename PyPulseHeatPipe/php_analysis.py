@@ -7,7 +7,12 @@ import glob
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
+import pygwalker as pyg
+from pygwalker.api.streamlit import StreamlitRenderer
+import streamlit as st
+from streamlit.components.v1 import components
 sns.set()
+from typing import Union
 
 ## Data Analysis
 class PulseHeatPipe:
@@ -101,13 +106,13 @@ class PulseHeatPipe:
 
         if self.verbose:
             print(f"""\t --- set default params ---
-                    Temperature constant (Kelvin conversion):       {self.T_k}\t[K]
-                    Pressure constant (bar conversion):             {self.P_const}\t[bar]
-                    Real gas constant:                              {self.R_const}\t[J/Kmol]
-                    Change in Gibbs Free Energy of water:           {self.dG_standard}\t[KJ/mol]
-                    Standard pressure:                              {self.P_standard}\t[bar]
-                    verbose:                                        {self.verbose}
-                    \n
+            Temperature constant (Kelvin conversion):       {self.T_k}\t[K]
+            Pressure constant (bar conversion):             {self.P_const}\t[bar]
+            Real gas constant:                              {self.R_const}\t[J/Kmol]
+            Change in Gibbs Free Energy of water:           {self.dG_standard}\t[KJ/mol]
+            Standard pressure:                              {self.P_standard}\t[bar]
+            verbose:                                        {self.verbose}
+            \n
                   """)
             print(f"Directory path loaded for working directory: '{self.dir_path}'\n")
             print(f"Sample name saved as: '{self.sample}'")
@@ -205,7 +210,7 @@ class PulseHeatPipe:
     def convert_to_si(self, 
                        df: pd.DataFrame):
         """
-        to convert given data to SI units
+        to convert given Pressure and Temperature data to SI units
 
         NOTE: please write units in square brackets '[]'
 
@@ -226,7 +231,8 @@ class PulseHeatPipe:
                 'bar': 1,           # Bar
                 'mbar': 1e-3,       # Millibar
                 'torr': 1.33322e-3, # Torr
-                'psi': 6.89476e-2   # Pounds per square inch
+                'psi': 6.89476e-2,   # Pounds per square inch
+                'mmhg': 1.33322e-3  # Millimeters of mercury
             }
             
             # Normalize unit to lower case
@@ -403,15 +409,13 @@ class PulseHeatPipe:
                         .round(decimals)\
                         .groupby(property, as_index=False)\
                         .agg(method)\
-        
-        print(f'shape {df_num.shape}')
+   
         # Select first object column value per group
         df_obj = data.sort_values(by=property)\
                         .round(decimals)\
                         .groupby(by=property, as_index=False)[obj_cols]\
                         .first()
         
-        print(f'shape {df_obj.shape}')
         # Concatenate numerical and object dataframes
         df_out = pd.concat([df_num, df_obj], axis=1)
 
@@ -471,7 +475,7 @@ class PulseHeatPipe:
             except Exception as e:
                 if self.verbose:
                     print(f"Could not process column '{col}': {e}")
-        return msgs
+        return "\n".join(msgs)
         
     
     #8
@@ -505,7 +509,7 @@ class PulseHeatPipe:
             print(f'--- optimal thermal property at min(dG) ---')
         msgs = []
         for col in data.select_dtypes(exclude=['object', 'datetime']).columns:
-            if '[' and ']' in col:
+            if '[' in col and ']' in col:
                 unit_match = re.search(r'\[(.*?)\]', col)
                 try:
                     if unit_match:
@@ -515,7 +519,7 @@ class PulseHeatPipe:
                         if np.isnan(property_std):
                             property_std = 0
 
-                        msg = f"{col.split('[')[0]}\t\t average:\t\t  {property_avg} +- {property_std}\t\t {unit}"
+                        msg = f"{col.split('[')[0]}\t\t average:\t\t  {property_avg} ± {property_std}\t\t {unit}"
                         msgs.append(msg)
                         if self.verbose:
                             print(msg)
@@ -524,5 +528,159 @@ class PulseHeatPipe:
                 except Exception as e:
                     if self.verbose:
                         print(f"Could not process column '{col}': {e}")
-        return msgs
+        return "\n".join(msgs)
     
+## Data Visualization
+class DataVisualization(PulseHeatPipe):
+    """ DataVisualization class can be used for PHP experimental data plotting and interactive visualization with the help of PyGWalker and Streamlit python libraries.
+
+        ## use: 
+        
+        importing module
+        from analysis import DataVisualization
+        
+        creating the reference variable
+        visual = DataVisualization('dir_path', 'sample')
+        
+        data Visualization; eg. plotting all data
+        visual.plot_all_data()
+    """
+    #0
+    def __init__(self, dir_path: str = '.', 
+                 sample: str = 'default', T_K: 
+                 float = 273.15, 
+                 P_const: float = 1.013, 
+                 R_const: float = 8.314, 
+                 dG_standard: float = 30.9, 
+                 P_standard: float = 1.013, 
+                 verbose: bool = True):
+        super().__init__(dir_path, sample, T_K, P_const, R_const, dG_standard, P_standard, verbose)
+
+    #1    
+    def get_dashboard(self, 
+                      data: pd.DataFrame,
+                      spec: str = 'php_chart.json'):
+        
+        """ To get a data visualization dashboard for interactive plotting.
+            This dashboard is created with 'PyGWalker' library. 
+            Please find more details on operating the dashboard here: https://github.com/Kanaries/pygwalker?tab=readme-ov-file
+            
+            args:
+                data: pd.DataFrame
+                spec: str   # to save json chart
+
+            use: 
+                visual.get_dashboard(data)
+        """
+
+        path = os.path.join(self.dir_path, spec)
+        dashboard = pyg.walk(dataset=data,
+                            spec=path,
+                            kernel_computation=True,
+                            )
+        return dashboard
+    
+    #2
+    def get_plots(self,
+                  data: pd.DataFrame,
+                  x_col: str,
+                  y_col: str,
+                  auto_data_chop: bool = True,
+                  plot_method: str = Union['combined', 'separate'],
+                  figsize: tuple = (18, 9)                  
+                  ):
+        
+        """
+        To plot thermal properties for given experimental dataset.
+
+        args:
+            data: pd.DataFrame,
+            x_col: str,
+            y_col: str,
+            data_chop: bool,
+            plot_method: str = Union['combined', 'separate']
+
+        returns:
+            plot # matplotlib.pyplot.plt
+        """
+        frs = data['FR[%]'].unique()
+        qs = data['Q[W]'].unique()
+        alphas = data['alpha'].unique()
+        betas = data['beta'].unique()
+
+        # combined plot
+        if plot_method.lower() == 'combined':
+            # Assuming frs, qs, alphas, betas are defined and data is your DataFrame
+            plt.figure(figsize=figsize)
+            for fr in frs:
+                print(f'FR {fr}')
+                for q in qs:
+                    print(f'Q {q}')
+                    for a in alphas:
+                        for b in betas:
+                            print(f'alpha {a}, beta {b}')
+                            
+                            # Filter the dataframe
+                            data_ = data[(data['FR[%]'] == fr) & (data['Q[W]'] == q) & (data['alpha'] == a) & (data['beta'] == b)]
+
+                            if auto_data_chop:
+                                data_chop = self.data_chop(data=data_,
+                                                                Tmin=300,
+                                                                Tmax=360,
+                                                                T_col='Te_mean[K]',
+                                                                chop_suggested=True) 
+                            else:
+                                data_chop = data_
+
+                        if not data_chop.empty:
+                            # Plotting
+                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{x_col}_vs_{y_col}')
+                            plt.xlabel(f'{x_col}')
+                            plt.ylabel(f'{y_col}')
+                        else:
+                            print('DataFrame is empty!')
+                # combined
+                plt.legend()
+                plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b}')
+                plt.show()
+        
+        # separate plot
+        if plot_method.lower() == 'separate':
+            # Assuming frs, qs, alphas, betas are defined and data is your DataFrame
+            plt.figure(figsize=figsize)
+            for fr in frs:
+                print(f'FR {fr}')
+                for q in qs:
+                    print(f'Q {q}')
+                    for a in alphas:
+                        for b in betas:
+                            print(f'alpha {a}, beta {b}')
+                            
+                            # Filter the dataframe
+                            data_ = data[(data['FR[%]'] == fr) & (data['Q[W]'] == q) & (data['alpha'] == a) & (data['beta'] == b)]
+
+                            if auto_data_chop:
+                                data_chop = self.data_chop(data=data_,
+                                                                Tmin=300,
+                                                                Tmax=360,
+                                                                T_col='Te_mean[K]',
+                                                                chop_suggested=True)
+                            else:
+                                data_chop = data_
+                                            
+                            
+                        if not data_chop.empty:
+                            # Plotting
+                            plt.figure(figsize=figsize)
+                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{x_col}_vs_{y_col}')
+                            plt.xlabel(f'{x_col}')
+                            plt.ylabel(f'{y_col}')
+                        else:
+                            print('DataFrame is empty!')
+                        # separate
+                        plt.legend()
+                        plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b}')
+                        plt.show()
+
+        else:
+            print("give appropriate argument ['combined', 'separate']")
