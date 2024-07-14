@@ -682,9 +682,11 @@ class DataVisualization(PulseHeatPipe):
                 plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
                 plt.show()
                 if save_figure:
-                    plt.savefig(f'{self.dir_path}/FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split('[')[0]}_{x_col.split('[')[0]}_vs_{y_col.split('[')[0]}.pdf')
+                    file_name = f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split("[")[0]}_{x_col.split("[")[0]}_vs_{y_col.split("[")[0]}.pdf'
+                    file_path = f'{self.dir_path}/{file_name}'
+                    plt.savefig(file_path)
                     if self.verbose:
-                        print(f'plot saved as "{self.dir_path}/FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split('[')[0]}_{x_col.split('[')[0]}_vs_{y_col.split('[')[0]}.pdf"')
+                        print(f'plot saved as "{file_path}"')
         
         # separate plot
         elif plot_method.lower() == 'separate':
@@ -724,9 +726,11 @@ class DataVisualization(PulseHeatPipe):
                         plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
                         plt.show()
                         if save_figure:
-                            plt.savefig(f'{self.dir_path}/FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split('[')[0]}_{x_col.split('[')[0]}_vs_{y_col.split('[')[0]}.pdf')
+                            file_name = f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split("[")[0]}_{x_col.split("[")[0]}_vs_{y_col.split("[")[0]}.pdf'
+                            file_path = f'{self.dir_path}/{file_name}'
+                            plt.savefig(file_path)
                             if self.verbose:
-                                print(f'plot saved as "{self.dir_path}/FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split('[')[0]}_{x_col.split('[')[0]}_vs_{y_col.split('[')[0]}.pdf"')
+                                print(f'plot saved as "{file_path}"')
 
         else:
             print("give appropriate argument ['combined', 'separate']")
