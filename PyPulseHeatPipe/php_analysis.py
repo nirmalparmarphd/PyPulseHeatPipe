@@ -622,7 +622,7 @@ class DataVisualization(PulseHeatPipe):
                   x_col: str,
                   y_col: str,
                   auto_data_chop: bool = True,
-                  plot_method: str = Union['combined', 'separate'],
+                  plot_method: Union['combined', 'separate'] = 'combined',
                   figsize: tuple = (18, 9),
                   save_figure: bool = False,                  
                   ):
@@ -680,14 +680,16 @@ class DataVisualization(PulseHeatPipe):
                 # combined
                 plt.legend()
                 plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
-                plt.show()
                 if save_figure:
-                    file_name = f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split("[")[0]}_{x_col.split("[")[0]}_vs_{y_col.split("[")[0]}.pdf'
+                    x_col_ = x_col.split('[')[0]
+                    y_col_ = y_col.split('[')[0]
+                    file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
                     file_path = f'{self.dir_path}/{file_name}'
                     plt.savefig(file_path)
                     if self.verbose:
                         print(f'plot saved as "{file_path}"')
-        
+                plt.show()
+
         # separate plot
         elif plot_method.lower() == 'separate':
             # Assuming frs, qs, alphas, betas are defined and data is your DataFrame
@@ -724,13 +726,15 @@ class DataVisualization(PulseHeatPipe):
                         # separate
                         plt.legend()
                         plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
-                        plt.show()
                         if save_figure:
-                            file_name = f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample.split("[")[0]}_{x_col.split("[")[0]}_vs_{y_col.split("[")[0]}.pdf'
+                            x_col_ = x_col.split('[')[0]
+                            y_col_ = y_col.split('[')[0]
+                            file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
                             file_path = f'{self.dir_path}/{file_name}'
                             plt.savefig(file_path)
                             if self.verbose:
                                 print(f'plot saved as "{file_path}"')
+                        plt.show()
 
         else:
             print("give appropriate argument ['combined', 'separate']")
