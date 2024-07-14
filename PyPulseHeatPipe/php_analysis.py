@@ -623,7 +623,8 @@ class DataVisualization(PulseHeatPipe):
                   y_col: str,
                   auto_data_chop: bool = True,
                   plot_method: str = Union['combined', 'separate'],
-                  figsize: tuple = (18, 9)                  
+                  figsize: tuple = (18, 9),
+                  save_figure: bool = False,                  
                   ):
         
         """
@@ -635,6 +636,7 @@ class DataVisualization(PulseHeatPipe):
             y_col: str,
             data_chop: bool,
             plot_method: str = Union['combined', 'separate']
+            save_figure: bool
 
         returns:
             plot # matplotlib.pyplot.plt
@@ -679,6 +681,8 @@ class DataVisualization(PulseHeatPipe):
                 plt.legend()
                 plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
                 plt.show()
+                if save_figure:
+                    plt.savefig(f'{self.dir_path}/FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}.pdf')
         
         # separate plot
         elif plot_method.lower() == 'separate':
@@ -717,6 +721,8 @@ class DataVisualization(PulseHeatPipe):
                         plt.legend()
                         plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
                         plt.show()
+                        if save_figure:
+                            plt.savefig(f'{self.dir_path}/FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}.pdf')
 
         else:
             print("give appropriate argument ['combined', 'separate']")
