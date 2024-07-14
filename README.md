@@ -16,6 +16,8 @@ Key Features:
 
 - Convert units to the SI system.
 
+- Calculate thermal resistance.
+
 - Calculate Gibbs free energy at given temperatures and pressures.
 
 - Select data within a specific temperature range.
@@ -52,6 +54,8 @@ Key Features:
 
     convert_to_si(df: pd.DataFrame): Convert data columns to SI units based on their units in the column names.
 
+    compute_thermal_resistance(data: pd.DataFrame, T_evaporator_col: str, T_condenser_col: str, Q_heat_col: str,TR_output_col: str)
+
     compute_gibbs_free_energy(data: pd.DataFrame, T_evaporator_col: str, T_condenser_col: str, P_bar: str, to_csv: bool): Calculate the change in Gibbs free energy at given
 
 ### temperatures and pressures.
@@ -86,6 +90,9 @@ Key Features:
     # Converting data to SI units
 
     df_si = analysis.convert_to_si(df)
+
+    # Calculating thermal resistance
+    df_tr = analysis.compute_thermal_resistance(data: pd.DataFrame, T_evaporator_col: str, T_condenser_col: str,Q_heat_col: str,TR_output_col: str)
 
     # Calculating Gibbs free energy
 

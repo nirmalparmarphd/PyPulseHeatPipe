@@ -24,6 +24,7 @@ class PulseHeatPipe:
     - Generate a blank template file for experimental data entry.
     - Perform data extraction, transformation, and loading (ETL) from multiple experimental files.
     - Convert units to the SI system.
+    - Calculate thermal resistance.
     - Calculate Gibbs free energy at given temperatures and pressures.
     - Select data within a specific temperature range.
     - Compute and save statistical properties (mean, standard deviation) of the data.
@@ -44,6 +45,7 @@ class PulseHeatPipe:
         blank_file(blank='blank.xlsx'): Generate a blank sample Excel file for experimental data entry.
         data_etl(name='*', ext='.xlsx'): Load, filter, and combine experimental data from multiple Excel files.
         convert_to_si(df: pd.DataFrame): Convert data columns to SI units based on their units in the column names.
+        compute_thermal_resistance(data: pd.DataFrame, T_evaporator_col: str, T_condenser_col: str, Q_heat_col: str,TR_output_col: str)
         compute_gibbs_free_energy(data: pd.DataFrame, T_evaporator_col: str, T_condenser_col: str, P_bar: str, to_csv: bool): Calculate the change in Gibbs free energy at given temperatures and pressures.
         data_chop(data: pd.DataFrame, Tmin: int, Tmax: int, T_col: str, chop_suggested: bool): Select data within a specified temperature range.
         compute_data_stat(data: pd.DataFrame, property: str, to_csv: bool, method: str, decimals: int): Calculate and save statistical properties (mean, standard deviation) of the data grouped by a specified property.
@@ -64,6 +66,9 @@ class PulseHeatPipe:
 
         # Converting data to SI units
         df_si = analysis.convert_to_si(df)
+
+        # Calculating thermal resistance
+        df_tr = analysis.compute_thermal_resistance(data: pd.DataFrame, T_evaporator_col: str, T_condenser_col: str,Q_heat_col: str,TR_output_col: str)
 
         # Calculating Gibbs free energy
         gfe_data = analysis.compute_gibbs_free_energy(df)
@@ -205,7 +210,7 @@ class PulseHeatPipe:
         if self.verbose:
             print(f"### Compiled and converted data is saved at: {self.dir_path}'{self.sample}_combined_converted_data.csv' ###")
         return df, df_conv
-    
+
     #3
     def convert_to_si(self, 
                        df: pd.DataFrame):
@@ -279,10 +284,39 @@ class PulseHeatPipe:
                 elif unit in ['c', 'f', 'k', 'r']:
                     df[col_name+'[K]'] = df[col].apply(lambda x: temperature_to_kelvin(x, unit))
 
-        return df
-                
+        return df      
 
     #4
+    def compute_thermal_resistance(self,
+                                   data: pd.DataFrame,
+                                   T_evaporator_col: str,
+                                   T_condenser_col: str,
+                                   Q_heat_col: str,
+                                   TR_output_col: str,
+                                   )->pd.DataFrame:
+        """
+        To calculate thermal resistance from given experimental data
+
+        args:
+            data: pd.DataFrame,
+            T_evaporator_col: str,
+            T_condenser_col: str,
+            Q_heat_col: str
+            TR_output_col: str      # user set a column name
+
+        returns:
+            pd.DataFrame            # col will be added for thermal resistance
+
+        """
+        # checking df is not empty
+        if not data.empty:
+            data[TR_output_col] = (data[T_evaporator_col] - data[T_condenser_col]) / data[Q_heat_col]
+        else:
+            if self.verbose:
+                print('given pandas DataFrame is empty!')
+        return data
+
+    #5
     # to calculate gibbs free energy at given (T[K],P[bar])
     def compute_gibbs_free_energy(self, 
                                     data: pd.DataFrame,
@@ -293,6 +327,8 @@ class PulseHeatPipe:
                                     ):
         """
         gibbs_free_energy (GFE) method calculates the change in the gibbs free energy at a given vacuum pressure and temperature of the PHP.
+
+        NOTE: please convert to absolute pressure before using 'compute_gibbs_free_energy' function
 
         default considered thermal parameters for calculation.
         dG = dG' + RTln(P/P')
@@ -333,7 +369,7 @@ class PulseHeatPipe:
                 msg = print(f"Gibbs Free Energy calculated data saved at: {self.dir_path}'gfe_combined.csv")
         return data
     
-    #5
+    #6
     # To select data from specific Te range
     def data_chop(self, 
                   data: pd.DataFrame, 
@@ -375,7 +411,7 @@ class PulseHeatPipe:
 
         return data_T
     
-    #6
+    #7
     # data mixing and re-arranging
     def compute_data_stat(self, 
                   data: pd.DataFrame, 
@@ -426,7 +462,7 @@ class PulseHeatPipe:
 
         return df_out
     
-    #7
+    #8
     # prepare average values for all thermal properties
     def thermal_property_avg(self, 
                              data: pd.DataFrame,
@@ -478,7 +514,7 @@ class PulseHeatPipe:
         return "\n".join(msgs)
         
     
-    #8
+    #9
     # find optimal G(T,P) of PHP
     def best_TP(self, 
                 data: pd.DataFrame,
