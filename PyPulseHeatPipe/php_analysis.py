@@ -579,7 +579,10 @@ class DataVisualization(PulseHeatPipe):
         visual = DataVisualization('dir_path', 'sample')
         
         data Visualization; eg. plotting all data
-        visual.plot_all_data()
+        visual.get_dashboard()
+
+        calling help
+        help(visual)
     """
     #0
     def __init__(self, dir_path: str = '.', 
@@ -624,7 +627,8 @@ class DataVisualization(PulseHeatPipe):
                   auto_data_chop: bool = True,
                   plot_method: Union['combined', 'separate'] = 'combined',
                   figsize: tuple = (18, 9),
-                  save_figure: bool = False,                  
+                  save_figure: bool = False,
+                  show: bool = False                  
                   ):
         
         """
@@ -637,10 +641,14 @@ class DataVisualization(PulseHeatPipe):
             data_chop: bool,
             plot_method: str = Union['combined', 'separate']
             save_figure: bool
+            show: bool
 
         returns:
             plot # matplotlib.pyplot.plt
         """
+        # Set a style
+        plt.style.use('seaborn-whitegrid')
+        
         frs = data['FR[%]'].unique()
         qs = data['Q[W]'].unique()
         alphas = data['alpha'].unique()
@@ -685,10 +693,11 @@ class DataVisualization(PulseHeatPipe):
                     y_col_ = y_col.split('[')[0]
                     file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
                     file_path = f'{self.dir_path}/{file_name}'
-                    plt.savefig(file_path)
+                    plt.savefig(file_path, dpi=300, bbox_inches='tight')
                     if self.verbose:
                         print(f'plot saved as "{file_path}"')
-                plt.show()
+                if show:
+                    plt.show()
 
         # separate plot
         elif plot_method.lower() == 'separate':
@@ -731,10 +740,11 @@ class DataVisualization(PulseHeatPipe):
                             y_col_ = y_col.split('[')[0]
                             file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
                             file_path = f'{self.dir_path}/{file_name}'
-                            plt.savefig(file_path)
+                            plt.savefig(file_path, dpi=300, bbox_inches='tight')
                             if self.verbose:
                                 print(f'plot saved as "{file_path}"')
-                        plt.show()
+                        if show:
+                            plt.show()
 
         else:
             print("give appropriate argument ['combined', 'separate']")
