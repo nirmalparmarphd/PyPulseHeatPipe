@@ -628,7 +628,8 @@ class DataVisualization(PulseHeatPipe):
                   plot_method: Union['combined', 'separate'] = 'combined',
                   figsize: tuple = (18, 9),
                   save_figure: bool = False,
-                  show: bool = False                  
+                  show: bool = False,
+                  plot_background: str = 'seaborn-v0_8-whitegrid'                  
                   ):
         
         """
@@ -647,7 +648,7 @@ class DataVisualization(PulseHeatPipe):
             plot # matplotlib.pyplot.plt
         """
         # Set a style
-        plt.style.use('seaborn-whitegrid')
+        plt.style.use(plot_background)
         
         frs = data['FR[%]'].unique()
         qs = data['Q[W]'].unique()
