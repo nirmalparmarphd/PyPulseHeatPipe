@@ -558,7 +558,7 @@ class PulseHeatPipe:
                         if np.isnan(property_std):
                             property_std = 0
 
-                        msg = f"--- optimal thermal property at min(dG) ---\n{col.split('[')[0]}\t\t Optimal:\t\t  {property_avg} ± {property_std}\t\t {unit}"
+                        msg = f"{col.split('[')[0]}\t\t Optimal:\t\t  {property_avg} ± {property_std}\t\t {unit}"
                         msgs.append(msg)
                         if self.verbose:
                             print(msg)
@@ -632,20 +632,23 @@ class DataVisualization(PulseHeatPipe):
                   figsize: tuple = (18, 9),
                   save_figure: bool = False,
                   show: bool = False,
-                  plot_background: str = 'seaborn-v0_8-whitegrid'                  
+                  plot_background: str = 'seaborn-v0_8-whitegrid',
+                  T_pulse_col: str = None,                  
                   ):
         
         """
         To plot thermal properties for given experimental dataset.
 
         args:
-            data: pd.DataFrame,
-            x_col: str,
-            y_col: str,
-            data_chop: bool,
+            data: pd.DataFrame,         # data
+            x_col: str,                 # x axis data
+            y_col: str,                 # y axis data
+            data_chop: bool,            # if need to chop/select good data
             plot_method: str = Union['combined', 'separate']
-            save_figure: bool
-            show: bool
+            save_figure: bool           # save as pdf
+            show: bool = False          # show figure after run
+            plot_background: str = 'seaborn-v0_8-whitegrid',
+            T_pulse_col: str = 'T_pulse[K]', # col of Pulsation start temperature, if available
 
         returns:
             plot # matplotlib.pyplot.plt
@@ -685,10 +688,15 @@ class DataVisualization(PulseHeatPipe):
                         if not data_chop.empty:
                             # Plotting
                             plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}')
+                            if not T_pulse_col == None:
+                                # pulsation start temperature
+                                T_pulse = data_[T_pulse_col].min()
+                                plt.vlines(x=T_pulse, label=f'Pulsation Start Temperature')
                             plt.xlabel(f'{x_col}')
                             plt.ylabel(f'{y_col}')
                         else:
                             print('DataFrame is empty!')
+                            continue
                 # combined
                 plt.legend()
                 plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
@@ -732,10 +740,15 @@ class DataVisualization(PulseHeatPipe):
                             # Plotting
                             plt.figure(figsize=figsize)
                             plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}')
+                            if not T_pulse_col == None:
+                                # pulsation start temperature
+                                T_pulse = data_[T_pulse_col].min()
+                                plt.vlines(x=T_pulse, label=f'Pulsation Start Temperature')
                             plt.xlabel(f'{x_col}')
                             plt.ylabel(f'{y_col}')
                         else:
                             print('DataFrame is empty!')
+                            continue
                         # separate
                         plt.legend()
                         plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
