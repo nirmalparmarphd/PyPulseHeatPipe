@@ -13,6 +13,8 @@ import streamlit as st
 from streamlit.components.v1 import components
 sns.set()
 from typing import Union
+import matplotlib.cm as cm
+from itertools import cycle
 
 ## Data Analysis
 class PulseHeatPipe:
@@ -624,17 +626,17 @@ class DataVisualization(PulseHeatPipe):
     
     #2
     def get_plots(self,
-                  data: pd.DataFrame,
-                  x_col: str,
-                  y_col: str,
-                  auto_data_chop: bool = True,
-                  plot_method: Union['combined', 'separate'] = 'combined',
-                  figsize: tuple = (18, 9),
-                  save_figure: bool = False,
-                  show: bool = False,
-                  plot_background: str = 'seaborn-v0_8-whitegrid',
-                  T_pulse_col: str = None,                  
-                  ):
+                data: pd.DataFrame,
+                x_col: str,
+                y_col: str,
+                auto_data_chop: bool = True,
+                plot_method: Union['combined', 'separate'] = 'combined',
+                figsize: tuple = (18, 9),
+                save_figure: bool = False,
+                show: bool = False,
+                plot_background: str = 'seaborn-v0_8-whitegrid',
+                T_pulse_col: str = None,
+                colormap: str = 'tab10'):  # Added colormap argument
         
         """
         To plot thermal properties for given experimental dataset.
@@ -643,12 +645,13 @@ class DataVisualization(PulseHeatPipe):
             data: pd.DataFrame,         # data
             x_col: str,                 # x axis data
             y_col: str,                 # y axis data
-            data_chop: bool,            # if need to chop/select good data
+            auto_data_chop: bool,       # if need to chop/select good data
             plot_method: str = Union['combined', 'separate']
             save_figure: bool           # save as pdf
             show: bool = False          # show figure after run
             plot_background: str = 'seaborn-v0_8-whitegrid',
             T_pulse_col: str = 'T_pulse[K]', # col of Pulsation start temperature, if available
+            colormap: str = 'tab10'     # colormap to use for different colors, such as viridis, plasma, inferno, magma, cividis, tab10, tab20, etc.
 
         returns:
             plot # matplotlib.pyplot.plt
@@ -661,9 +664,13 @@ class DataVisualization(PulseHeatPipe):
         alphas = data['alpha'].unique()
         betas = data['beta'].unique()
 
+        # Create a colormap
+        cmap = cm.get_cmap(colormap, len(frs) * len(qs) * len(alphas) * len(betas))
+        colors = cmap(np.linspace(0, 1, len(frs) * len(qs) * len(alphas) * len(betas)))
+        color_cycle = cycle(colors)
+
         # combined plot
         if plot_method.lower() == 'combined':
-            # Assuming frs, qs, alphas, betas are defined and data is your DataFrame
             plt.figure(figsize=figsize)
             for fr in frs:
                 print(f'FR {fr}')
@@ -675,46 +682,48 @@ class DataVisualization(PulseHeatPipe):
                             
                             # Filter the dataframe
                             data_ = data[(data['FR[%]'] == fr) & (data['Q[W]'] == q) & (data['alpha'] == a) & (data['beta'] == b)]
+                            color = next(color_cycle)
 
                             if auto_data_chop:
                                 data_chop = self.data_chop(data=data_,
-                                                                Tmin=200,
-                                                                Tmax=400,
-                                                                T_col='Te_mean[K]',
-                                                                chop_suggested=True) 
+                                                        Tmin=200,
+                                                        Tmax=400,
+                                                        T_col='Te_mean[K]',
+                                                        chop_suggested=True) 
                             else:
                                 data_chop = data_
 
-                        if not data_chop.empty:
-                            # Plotting
-                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}')
-                            if not T_pulse_col == None:
-                                # pulsation start temperature
-                                T_pulse = data_[T_pulse_col].min()
-                                plt.vlines(x=T_pulse, label=f'Pulsation Start Temperature')
-                            plt.xlabel(f'{x_col}')
-                            plt.ylabel(f'{y_col}')
-                        else:
-                            print('DataFrame is empty!')
-                            continue
-                # combined
-                plt.legend()
-                plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
-                if save_figure:
-                    x_col_ = x_col.split('[')[0]
-                    y_col_ = y_col.split('[')[0]
-                    file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
-                    file_path = f'{self.dir_path}/{file_name}'
-                    plt.savefig(file_path, dpi=300, bbox_inches='tight')
-                    if self.verbose:
-                        print(f'plot saved as "{file_path}"')
-                if show:
-                    plt.show()
+                            if not data_chop.empty:
+                                # Plotting
+                                plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}', color=color)
+                                if T_pulse_col:
+                                    # pulsation start temperature
+                                    T_pulse = data_[T_pulse_col].min()
+                                    if T_pulse > 273:
+                                        plt.axvline(x=T_pulse, color=color)
+                                    else:
+                                        continue
+                                plt.xlabel(f'{x_col}')
+                                plt.ylabel(f'{y_col}')
+                            else:
+                                print('DataFrame is empty!')
+                                continue
+            # combined
+            plt.legend()
+            plt.title(f'FR {frs}% - Q {qs}W - alpha {alphas} - beta {betas} - {self.sample}')
+            if save_figure:
+                x_col_ = x_col.split('[')[0]
+                y_col_ = y_col.split('[')[0]
+                file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
+                file_path = f'{self.dir_path}/{file_name}'
+                plt.savefig(file_path, dpi=300, bbox_inches='tight')
+                if self.verbose:
+                    print(f'plot saved as "{file_path}"')
+            if show:
+                plt.show()
 
         # separate plot
         elif plot_method.lower() == 'separate':
-            # Assuming frs, qs, alphas, betas are defined and data is your DataFrame
-            plt.figure(figsize=figsize)
             for fr in frs:
                 print(f'FR {fr}')
                 for q in qs:
@@ -725,43 +734,45 @@ class DataVisualization(PulseHeatPipe):
                             
                             # Filter the dataframe
                             data_ = data[(data['FR[%]'] == fr) & (data['Q[W]'] == q) & (data['alpha'] == a) & (data['beta'] == b)]
+                            color = next(color_cycle)
 
                             if auto_data_chop:
                                 data_chop = self.data_chop(data=data_,
-                                                                Tmin=200,
-                                                                Tmax=400,
-                                                                T_col='Te_mean[K]',
-                                                                chop_suggested=True)
+                                                        Tmin=200,
+                                                        Tmax=400,
+                                                        T_col='Te_mean[K]',
+                                                        chop_suggested=True)
                             else:
                                 data_chop = data_
-                                            
-                            
-                        if not data_chop.empty:
-                            # Plotting
-                            plt.figure(figsize=figsize)
-                            plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}')
-                            if not T_pulse_col == None:
-                                # pulsation start temperature
-                                T_pulse = data_[T_pulse_col].min()
-                                plt.vlines(x=T_pulse, label=f'Pulsation Start Temperature')
-                            plt.xlabel(f'{x_col}')
-                            plt.ylabel(f'{y_col}')
-                        else:
-                            print('DataFrame is empty!')
-                            continue
-                        # separate
-                        plt.legend()
-                        plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
-                        if save_figure:
-                            x_col_ = x_col.split('[')[0]
-                            y_col_ = y_col.split('[')[0]
-                            file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
-                            file_path = f'{self.dir_path}/{file_name}'
-                            plt.savefig(file_path, dpi=300, bbox_inches='tight')
-                            if self.verbose:
-                                print(f'plot saved as "{file_path}"')
-                        if show:
-                            plt.show()
+
+                            if not data_chop.empty:
+                                plt.figure(figsize=figsize)
+                                plt.scatter(x=data_chop[x_col], y=data_chop[y_col], label=f'FR{fr}[%]_Q{q}[W]_A[{a}]_B[{b}]_{self.sample}_{x_col}_vs_{y_col}', color=color)
+                                if T_pulse_col:
+                                    # pulsation start temperature
+                                    T_pulse = data_[T_pulse_col].min()
+                                    if T_pulse > 273:
+                                        plt.axvline(x=T_pulse, color=color)
+                                    else:
+                                        continue
+                                plt.xlabel(f'{x_col}')
+                                plt.ylabel(f'{y_col}')
+                            else:
+                                print('DataFrame is empty!')
+                                continue
+                            # separate
+                            plt.legend()
+                            plt.title(f'FR {fr}% - Q {q}W - alpha {a} - beta {b} - {self.sample}')
+                            if save_figure:
+                                x_col_ = x_col.split('[')[0]
+                                y_col_ = y_col.split('[')[0]
+                                file_name = f'FR{fr}_Q{q}_A{a}_B{b}_{self.sample}_{x_col_}_vs_{y_col_}.pdf'
+                                file_path = f'{self.dir_path}/{file_name}'
+                                plt.savefig(file_path, dpi=300, bbox_inches='tight')
+                                if self.verbose:
+                                    print(f'plot saved as "{file_path}"')
+                            if show:
+                                plt.show()
 
         else:
             print("give appropriate argument ['combined', 'separate']")
