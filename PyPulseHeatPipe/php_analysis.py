@@ -398,16 +398,19 @@ class PulseHeatPipe:
         here, Tmin/Tmax is a suitable value (int) from the data.
         default values: Tmin=300, Tmax=400
         """
-        Tmina = data[T_col].min()
-        Tmaxa = data[T_col].max()
+        if not data.empty:
+            Tmina = data[T_col].min()
+            Tmaxa = data[T_col].max()
 
-        assert Tmin < Tmax, f"Entered wrong values: Correct range [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa,4)}]"
-        
-        print(f"Optimal range of temperature(Te) for data selection: [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa)}]")
-        data_T = data[(data[T_col] <= Tmax) & (data[T_col] >= Tmin)]
+            assert Tmin < Tmax, f"Entered wrong values: Correct range [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa,4)}]"
+            
+            print(f"Optimal range of temperature(Te) for data selection: [Tmin:{round(Tmina,4)}, Tmax:{round(Tmaxa)}]")
+            data_T = data[(data[T_col] <= Tmax) & (data[T_col] >= Tmin)]
 
-        if chop_suggested:
-            data_T = data[(data[T_col] <= Tmaxa) & (data[T_col] >= Tmina)]
+            if chop_suggested:
+                data_T = data[(data[T_col] <= Tmaxa) & (data[T_col] >= Tmina)]
+        else:
+            print('DataFrame is empty!')
 
         return data_T
     
@@ -555,7 +558,7 @@ class PulseHeatPipe:
                         if np.isnan(property_std):
                             property_std = 0
 
-                        msg = f"{col.split('[')[0]}\t\t average:\t\t  {property_avg} ± {property_std}\t\t {unit}"
+                        msg = f"--- optimal thermal property at min(dG) ---\n{col.split('[')[0]}\t\t Optimal:\t\t  {property_avg} ± {property_std}\t\t {unit}"
                         msgs.append(msg)
                         if self.verbose:
                             print(msg)
@@ -672,8 +675,8 @@ class DataVisualization(PulseHeatPipe):
 
                             if auto_data_chop:
                                 data_chop = self.data_chop(data=data_,
-                                                                Tmin=300,
-                                                                Tmax=360,
+                                                                Tmin=200,
+                                                                Tmax=400,
                                                                 T_col='Te_mean[K]',
                                                                 chop_suggested=True) 
                             else:
@@ -717,8 +720,8 @@ class DataVisualization(PulseHeatPipe):
 
                             if auto_data_chop:
                                 data_chop = self.data_chop(data=data_,
-                                                                Tmin=300,
-                                                                Tmax=360,
+                                                                Tmin=200,
+                                                                Tmax=400,
                                                                 T_col='Te_mean[K]',
                                                                 chop_suggested=True)
                             else:
